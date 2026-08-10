@@ -1,0 +1,25 @@
+[Unit]
+Description=障害情報ボード (ShogaiBoard) - オフライン環境向け（自己完結型デプロイ）
+After=network.target
+
+[Service]
+# publish-offlineフォルダの中身一式を配置した先のパスに合わせて変更する
+WorkingDirectory=/var/www/shogai-board
+# 自己完結型デプロイのため、dotnetコマンドを経由せず実行ファイルを直接起動する
+ExecStart=/var/www/shogai-board/ShogaiBoard
+Restart=always
+RestartSec=10
+KillSignal=SIGINT
+SyslogIdentifier=shogai-board
+
+# アプリ専用の実行ユーザー（README参照）。root等では実行しないこと
+User=shogai-board
+Group=shogai-board
+
+Environment=ASPNETCORE_ENVIRONMENT=Production
+# Nginxを使わずKestrelが直接80番ポートで待ち受ける
+# （実行ファイルにsetcap cap_net_bind_serviceを付与しておくこと。README参照）
+Environment=ASPNETCORE_URLS=http://0.0.0.0:80
+
+[Install]
+WantedBy=multi-user.target

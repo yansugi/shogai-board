@@ -1,0 +1,240 @@
+@page "{id:int?}"
+@model RegisterModel
+@{
+    var isEdit = Model.Id.HasValue;
+    ViewData["Title"] = isEdit ? "障害編集" : "障害登録";
+}
+
+<link rel="stylesheet" href="~/lib/flatpickr/flatpickr.min.css" />
+
+<div class="mb-4">
+    <h1 class="h3 mb-1 fw-bold">@(isEdit ? "障害編集" : "障害登録")</h1>
+    <p class="page-subtitle mb-0">対象システム・障害内容・発生日時等を選択して@(isEdit ? "内容を更新してください。" : "登録してください。")</p>
+</div>
+
+<div class="card page-card" style="max-width: 680px;">
+    <div class="card-body">
+        <form method="post">
+            <div asp-validation-summary="All" class="text-danger mb-3"></div>
+            <input type="hidden" asp-for="Id" />
+
+            <div class="mb-3">
+                <label class="form-label">対象システム</label>
+                <div class="system-combobox">
+                    <input type="text" id="systemSearchInput" class="form-control form-control-lg" placeholder="システム名で検索..." autocomplete="off" />
+                    <input type="hidden" asp-for="SystemId" />
+                    <div id="systemOptionsList" class="system-options-list"></div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">障害内容</label>
+                <textarea asp-for="Description" class="form-control form-control-lg" rows="3" placeholder="例：住民票のオンライン交付が利用できない状態です。"></textarea>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label">重要度</label>
+                    <select asp-for="Severity" class="form-select form-select-lg">
+                        <option value="@IncidentSeverity.Critical">@IncidentSeverity.Critical.ToLabel()</option>
+                        <option value="@IncidentSeverity.Major">@IncidentSeverity.Major.ToLabel()</option>
+                        <option value="@IncidentSeverity.Minor">@IncidentSeverity.Minor.ToLabel()</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">対応状況</label>
+                    <select asp-for="Status" id="statusSelect" class="form-select form-select-lg">
+                        <option value="@IncidentStatus.Investigating">@IncidentStatus.Investigating.ToLabel()</option>
+                        <option value="@IncidentStatus.InProgress">@IncidentStatus.InProgress.ToLabel()</option>
+                        <option value="@IncidentStatus.Resolved">@IncidentStatus.Resolved.ToLabel()</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">影響範囲・対象業務（任意）</label>
+                <input asp-for="AffectedScope" class="form-control form-control-lg" placeholder="例：住民票のコンビニ交付のみ、庁内全体 等" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">発生日時</label>
+                <input asp-for="OccurredAt" type="text" id="occurredAt" class="form-control form-control-lg datetime-input" autocomplete="off" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">復旧予定時刻（見込み・任意）</label>
+                <input asp-for="EstimatedRecoveryAt" type="text" id="estimatedRecoveryAt" class="form-control form-control-lg datetime-input" autocomplete="off" />
+            </div>
+
+            <div class="mb-3" id="resolvedAtGroup">
+                <label class="form-label">復旧日時（実績）</label>
+                <input asp-for="ResolvedAt" type="text" id="resolvedAt" class="form-control form-control-lg datetime-input" autocomplete="off" />
+                <p class="form-text mb-0">対応状況を「復旧済み」にして未入力のまま保存すると、自動的に現在時刻が設定されます。</p>
+            </div>
+
+            <button type="submit" class="btn btn-primary rounded-pill px-4 shadow-sm">@(isEdit ? "更新する" : "登録する")</button>
+            <a asp-page="/Index" class="btn btn-outline-secondary rounded-pill px-4">戻る</a>
+        </form>
+    </div>
+</div>
+
+<script id="systemOptionsData" type="application/json">@Html.Raw(Model.SystemOptionsJson)</script>
+
+@section Scripts {
+    <script src="~/lib/flatpickr/flatpickr.min.js"></script>
+    <script src="~/lib/flatpickr/l10n/ja.js"></script>
+    <script>
+        flatpickr.localize(flatpickr.l10ns.ja);
+
+        // 対象システム選択欄：全システムを対象に検索しながら選べるコンボボックスにする。
+        (function setupSystemPicker() {
+            const dataEl = document.getElementById("systemOptionsData");
+            let systemOptions = [];
+            try {
+                systemOptions = JSON.parse(dataEl.textContent || "[]");
+            } catch {
+                systemOptions = [];
+            }
+
+            const searchInput = document.getElementById("systemSearchInput");
+            const hiddenInput = document.getElementById("SystemId");
+            const optionsList = document.getElementById("systemOptionsList");
+
+            // Enterキーで確定できるよう、直近の絞り込み結果と矢印キーでの選択位置を保持しておく。
+            let currentFiltered = [];
+            let activeIndex = -1;
+
+            function closeOptionsList() {
+                optionsList.classList.remove("show");
+            }
+
+            function selectSystem(option) {
+                hiddenInput.value = option.id;
+                searchInput.value = option.text;
+                closeOptionsList();
+            }
+
+            function highlightActiveItem() {
+                const items = optionsList.querySelectorAll(".system-option-item");
+                items.forEach(function (el, idx) {
+                    if (idx === activeIndex) {
+                        el.classList.add("active");
+                        el.scrollIntoView({ block: "nearest" });
+                    } else {
+                        el.classList.remove("active");
+                    }
+                });
+            }
+
+            function renderOptionsList(filterText) {
+                const keyword = (filterText || "").trim().toLowerCase();
+                const filtered = systemOptions.filter(function (opt) {
+                    return opt.text.toLowerCase().includes(keyword);
+                });
+                currentFiltered = filtered;
+                activeIndex = filtered.length > 0 ? 0 : -1;
+
+                optionsList.innerHTML = "";
+                if (filtered.length === 0) {
+                    const empty = document.createElement("div");
+                    empty.className = "system-option-empty";
+                    empty.textContent = "該当するシステムがありません";
+                    optionsList.appendChild(empty);
+                } else {
+                    filtered.forEach(function (opt, idx) {
+                        const item = document.createElement("button");
+                        item.type = "button";
+                        item.className = "system-option-item";
+                        item.textContent = opt.text;
+                        // clickではなくmousedownで処理し、input側のblurより先に選択を確定させる。
+                        item.addEventListener("mousedown", function (e) {
+                            e.preventDefault();
+                            selectSystem(opt);
+                        });
+                        item.addEventListener("mouseenter", function () {
+                            activeIndex = idx;
+                            highlightActiveItem();
+                        });
+                        optionsList.appendChild(item);
+                    });
+                    highlightActiveItem();
+                }
+                optionsList.classList.add("show");
+            }
+
+            searchInput.addEventListener("focus", function () {
+                renderOptionsList(searchInput.value);
+            });
+            searchInput.addEventListener("input", function () {
+                hiddenInput.value = "0";
+                renderOptionsList(searchInput.value);
+            });
+            searchInput.addEventListener("blur", function () {
+                setTimeout(closeOptionsList, 150);
+            });
+            searchInput.addEventListener("keydown", function (e) {
+                if (e.key === "ArrowDown") {
+                    e.preventDefault();
+                    if (currentFiltered.length === 0) {
+                        return;
+                    }
+                    activeIndex = Math.min(activeIndex + 1, currentFiltered.length - 1);
+                    highlightActiveItem();
+                    return;
+                }
+                if (e.key === "ArrowUp") {
+                    e.preventDefault();
+                    if (currentFiltered.length === 0) {
+                        return;
+                    }
+                    activeIndex = Math.max(activeIndex - 1, 0);
+                    highlightActiveItem();
+                    return;
+                }
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    if (activeIndex >= 0 && activeIndex < currentFiltered.length) {
+                        selectSystem(currentFiltered[activeIndex]);
+                    }
+                }
+            });
+            document.addEventListener("click", function (e) {
+                if (!e.target.closest(".system-combobox")) {
+                    closeOptionsList();
+                }
+            });
+
+            // 編集時など、既に選択済みのシステムがある場合は検索欄にシステム名を表示しておく。
+            const initialId = parseInt(hiddenInput.value, 10);
+            if (initialId) {
+                const initialOption = systemOptions.find(function (opt) { return opt.id === initialId; });
+                if (initialOption) {
+                    searchInput.value = initialOption.text;
+                }
+            }
+        })();
+
+        // 発生日時・復旧予定時刻・復旧日時は、いずれも日付＋時刻を1つの欄で入力できるようにする。
+        function setupDateTimePicker(id) {
+            const el = document.getElementById(id);
+            flatpickr(el, {
+                enableTime: true,
+                time_24hr: true,
+                dateFormat: "Y-m-d H:i",
+                defaultDate: el.value || undefined
+            });
+        }
+        setupDateTimePicker("occurredAt");
+        setupDateTimePicker("estimatedRecoveryAt");
+        setupDateTimePicker("resolvedAt");
+
+        // 対応状況が「復旧済み」以外の間は、復旧日時（実績）の入力欄を表示しない（未復旧のため）。
+        const statusSelect = document.getElementById("statusSelect");
+        const resolvedAtGroup = document.getElementById("resolvedAtGroup");
+        function syncResolvedAtVisibility() {
+            resolvedAtGroup.classList.toggle("d-none", statusSelect.value !== "@IncidentStatus.Resolved");
+        }
+        statusSelect.addEventListener("change", syncResolvedAtVisibility);
+        syncResolvedAtVisibility();
+    </script>
+}

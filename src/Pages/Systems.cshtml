@@ -1,0 +1,134 @@
+@page
+@model SystemsModel
+@{
+    ViewData["Title"] = "対象システム管理";
+}
+
+<h1 class="h3 mb-3">対象システム管理</h1>
+
+<div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+@if (!string.IsNullOrEmpty(Model.ImportResultMessage))
+{
+    <div class="alert alert-success" style="max-width: 780px; white-space: pre-line;">
+        @Model.ImportResultMessage
+        @if (!string.IsNullOrEmpty(Model.ImportErrorDetail))
+        {
+            <hr />
+            <div class="mb-0">@Model.ImportErrorDetail</div>
+        }
+    </div>
+}
+
+<h2 class="h5 mb-2">対象システムを追加</h2>
+<form method="post" asp-page-handler="Add" class="d-flex gap-2 mb-4" style="max-width: 640px;">
+    <input asp-for="NewName" class="form-control" placeholder="システム名" />
+    <input asp-for="NewOwnerSection" class="form-control" placeholder="管轄部署（任意）" />
+    <button type="submit" class="btn btn-primary text-nowrap">追加する</button>
+</form>
+
+<h2 class="h5 mb-2">CSVで一括登録</h2>
+<p class="text-muted mb-2">
+    1行目はヘッダー、1列目にシステム名（必須）、2列目に管轄部署（任意）を入力してください。
+    既存のシステム名と一致する行は管轄部署を更新し、一致しない行は新規追加します。
+    文字コードはUTF-8・Shift_JIS（Excel保存時の既定）のどちらにも対応しています。
+    悪用・誤操作を防ぐため、取り込みにはマスターパスワードが必要です（CSVで新規追加されたシステムは、削除時にもマスターパスワードが必要になります）。
+</p>
+<form method="post" asp-page-handler="ImportCsv" enctype="multipart/form-data" class="d-flex gap-2 align-items-center mb-2" style="max-width: 780px;">
+    <input type="file" name="CsvFile" accept=".csv" class="form-control" required />
+    <input type="password" asp-for="ImportMasterPassword" class="form-control" placeholder="マスターパスワード" autocomplete="off" required style="max-width: 220px;" />
+    <button type="submit" class="btn btn-outline-primary text-nowrap">取り込む</button>
+</form>
+<a href="/templates/systems-template.csv" class="d-inline-block mb-4" download>テンプレートCSVをダウンロード</a>
+
+<table class="table table-bordered bg-white" style="max-width: 780px;">
+    <thead class="table-dark">
+        <tr>
+            <th>システム名</th>
+            <th>管轄部署（任意）</th>
+            <th style="width: 160px;"></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var system in Model.Systems)
+        {
+            <tr>
+                <td>
+                    <form method="post" asp-page-handler="Update" id="update-form-@system.Id" class="d-flex gap-2 align-items-center">
+                        <input type="hidden" name="id" value="@system.Id" />
+                        <input type="text" name="name" value="@system.Name"
+                               class="form-control form-control-sm @(system.IsImported ? "bg-body-secondary" : "")"
+                               readonly="@(system.IsImported ? "readonly" : null)"
+                               title="@(system.IsImported ? "CSVで取り込まれたシステム名は変更できません（管轄部署は変更可能）" : null)" />
+                        @if (system.IsImported)
+                        {
+                            <span class="badge bg-secondary" title="CSVで取り込まれたシステムです。システム名は変更できません。削除にはマスターパスワードが必要です。">CSV取込</span>
+                        }
+                    </form>
+                </td>
+                <td>
+                    <input type="text" name="ownerSection" value="@system.OwnerSection" form="update-form-@system.Id" class="form-control form-control-sm" />
+                </td>
+                <td class="d-flex gap-2">
+                    <button type="submit" form="update-form-@system.Id" class="btn btn-sm btn-outline-primary rounded-pill">保存</button>
+                    <button type="button" class="btn btn-sm btn-outline-danger rounded-pill delete-system-btn"
+                            data-bs-toggle="modal" data-bs-target="#deleteSystemModal"
+                            data-system-id="@system.Id" data-system-name="@system.Name"
+                            data-system-imported="@system.IsImported.ToString().ToLowerInvariant()">削除</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<a asp-page="/Index" class="btn btn-secondary mt-4">ダッシュボードへ戻る</a>
+
+<!-- 対象システム削除の確認モーダル：マスターパスワードを知っている者のみ削除できるようにする -->
+<div class="modal fade" id="deleteSystemModal" tabindex="-1" aria-labelledby="deleteSystemModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" asp-page-handler="Delete">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteSystemModalLabel">対象システムの削除</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="閉じる"></button>
+                </div>
+                <div class="modal-body">
+                    <p>「<strong id="deleteSystemName"></strong>」を削除します。紐づく障害情報も併せて削除されます。この操作は取り消せません。</p>
+                    <input type="hidden" name="id" id="deleteSystemId" />
+                    <div id="deleteMasterPasswordGroup" class="d-none">
+                        <p class="text-muted small mb-2">CSVで取り込まれたシステムのため、削除にはマスターパスワードが必要です。</p>
+                        <label for="deleteMasterPassword" class="form-label">マスターパスワード</label>
+                        <input type="password" name="masterPassword" id="deleteMasterPassword" class="form-control" placeholder="マスターパスワードを入力してください" autocomplete="off" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">キャンセル</button>
+                    <button type="submit" class="btn btn-danger rounded-pill">削除する</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // CSVで取り込まれたシステム（IsImported）のみ、マスターパスワードを知っている者だけが削除できるようにする。
+        // 手動で追加したシステムは誰でも削除できるため、パスワード欄はCSV取込のシステムのときだけ表示する。
+        const deleteSystemModal = document.getElementById("deleteSystemModal");
+        const deleteMasterPasswordGroup = document.getElementById("deleteMasterPasswordGroup");
+        deleteSystemModal.addEventListener("show.bs.modal", function (event) {
+            const button = event.relatedTarget;
+            document.getElementById("deleteSystemId").value = button.dataset.systemId;
+            document.getElementById("deleteSystemName").textContent = button.dataset.systemName;
+            document.getElementById("deleteMasterPassword").value = "";
+
+            const isImported = button.dataset.systemImported === "true";
+            deleteMasterPasswordGroup.classList.toggle("d-none", !isImported);
+        });
+        deleteSystemModal.addEventListener("shown.bs.modal", function () {
+            if (!deleteMasterPasswordGroup.classList.contains("d-none")) {
+                document.getElementById("deleteMasterPassword").focus();
+            }
+        });
+    </script>
+}
