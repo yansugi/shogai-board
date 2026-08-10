@@ -1,0 +1,273 @@
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #0891b2;
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 60px;
+}
+
+/* 障害登録画面の日時ピッカー（Flatpickr）を大きく見やすくする */
+.flatpickr-calendar {
+  font-size: 1.2rem;
+}
+
+.flatpickr-day {
+  height: 48px;
+  line-height: 48px;
+}
+
+.flatpickr-current-month {
+  font-size: 1.1rem;
+}
+
+.datetime-input {
+  font-size: 1.2rem;
+}
+
+/* カレンダー上の日曜日は赤、土曜日は青で表示する */
+.flatpickr-day.weekday-sun {
+  color: #dc3545;
+}
+
+.flatpickr-day.weekday-sat {
+  color: #0d6efd;
+}
+
+.flatpickr-day.weekday-sun.selected,
+.flatpickr-day.weekday-sat.selected {
+  color: #fff;
+}
+
+/* ===== テーマ ===== */
+:root {
+  --color-bg: #f2f6f7;
+  --color-card-bg: #ffffff;
+  --color-border: #e1e8ea;
+  --color-text-muted: #64748b;
+  --color-primary: #0e7490;
+  --color-primary-dark: #155e75;
+  --shadow-card: 0 1px 3px rgba(15, 23, 42, 0.06), 0 10px 24px rgba(15, 23, 42, 0.06);
+}
+
+body {
+  background-color: var(--color-bg);
+}
+
+/* ナビゲーション */
+.navbar {
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+}
+
+.navbar-brand {
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.navbar .nav-link {
+  font-weight: 500;
+  border-radius: 999px;
+  padding: 0.4rem 0.9rem !important;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.navbar .nav-link:hover {
+  background-color: rgba(14, 116, 144, 0.08);
+  color: var(--color-primary) !important;
+}
+
+/* ページ共通の白カード（登録フォーム・ダッシュボードの表を包む） */
+.page-card {
+  background: var(--color-card-bg);
+  border: none;
+  border-radius: 1.1rem;
+  box-shadow: var(--shadow-card);
+}
+
+.page-card.card .card-body {
+  padding: 2rem;
+}
+
+.page-subtitle {
+  color: var(--color-text-muted);
+}
+
+.form-label {
+  font-weight: 600;
+  color: #374151;
+}
+
+.datetime-input:focus,
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--color-primary);
+}
+
+/* 対象システム選択欄：検索しながら選べるコンボボックス */
+.system-combobox {
+  position: relative;
+}
+
+.system-options-list {
+  display: none;
+  position: absolute;
+  top: calc(100% + 0.25rem);
+  left: 0;
+  right: 0;
+  z-index: 20;
+  max-height: 16rem;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 0.6rem;
+  box-shadow: var(--shadow-card);
+  padding: 0.35rem;
+}
+
+.system-options-list.show {
+  display: block;
+}
+
+.system-option-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: transparent;
+  padding: 0.55rem 0.7rem;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.system-option-item:hover,
+.system-option-item.active {
+  background: #ecfeff;
+  color: var(--color-primary-dark);
+}
+
+.system-option-empty {
+  padding: 0.55rem 0.7rem;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+/* ダッシュボードのヘッダー */
+.dashboard-header .btn {
+  font-weight: 600;
+}
+
+/* ダッシュボードの表をカード化し、フラットで柔らかい見た目にする */
+.table-card {
+  overflow-x: auto;
+}
+
+.modern-table {
+  margin-bottom: 0;
+}
+
+.modern-table thead {
+  background: linear-gradient(135deg, #ecfeff, #cffafe);
+}
+
+.modern-table thead th {
+  border-bottom: none;
+  color: #155e75;
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+  padding: 0.9rem 1.1rem;
+  white-space: nowrap;
+}
+
+.modern-table td {
+  padding: 0.9rem 1.1rem;
+  border-top: none;
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: middle;
+}
+
+.modern-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.modern-table tbody tr:hover td {
+  background-color: #f8fafc;
+}
+
+.dept-name {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+/* 重要度バッジ（緊急・重要・軽微） */
+.severity-badge {
+  display: inline-block;
+  padding: 0.18rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.severity-badge.severity-critical {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.severity-badge.severity-major {
+  background: #ffedd5;
+  color: #c2410c;
+}
+
+.severity-badge.severity-minor {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+/* 対応状況バッジ（調査中・対応中・復旧済み） */
+.status-badge {
+  display: inline-block;
+  padding: 0.18rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.status-badge.status-investigating {
+  background: #fef9c3;
+  color: #a16207;
+}
+
+.status-badge.status-inprogress {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.status-badge.status-resolved {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+/* 障害情報がない場合の空状態表示 */
+.empty-state {
+  padding: 3rem 1.5rem;
+  text-align: center;
+}

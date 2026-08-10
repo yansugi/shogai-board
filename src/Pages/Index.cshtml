@@ -1,0 +1,71 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "障害情報ボード";
+    string[] weekdayLabels = { "日", "月", "火", "水", "木", "金", "土" };
+}
+
+<div class="dashboard-header d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-1 fw-bold">障害情報ボード</h1>
+        <p class="page-subtitle mb-0 small">現在発生中（未復旧）の障害を一覧表示しています（1分ごとに自動更新）</p>
+    </div>
+    <a class="btn btn-primary rounded-pill px-4 shadow-sm" asp-page="/Register">障害を登録する</a>
+</div>
+
+@if (Model.OngoingIncidents.Count == 0)
+{
+    <div class="page-card empty-state">
+        <p class="mb-0 fs-5 fw-semibold text-success">現在発生中の障害はありません。</p>
+    </div>
+}
+else
+{
+    <div class="page-card table-card">
+        <table class="table modern-table align-middle">
+            <thead>
+                <tr>
+                    <th>対象システム</th>
+                    <th>重要度</th>
+                    <th>状況</th>
+                    <th>障害内容</th>
+                    <th>発生日時</th>
+                    <th>復旧予定</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var incident in Model.OngoingIncidents)
+                {
+                    var occurredDisplay = $"{incident.OccurredAt:MM/dd}({weekdayLabels[(int)incident.OccurredAt.DayOfWeek]}) {incident.OccurredAt:HH:mm}";
+                    var estimatedDisplay = incident.EstimatedRecoveryAt is null
+                        ? "未定"
+                        : $"{incident.EstimatedRecoveryAt:MM/dd}({weekdayLabels[(int)incident.EstimatedRecoveryAt.Value.DayOfWeek]}) {incident.EstimatedRecoveryAt:HH:mm}";
+                    <tr>
+                        <td><span class="dept-name">@incident.System!.Name</span></td>
+                        <td><span class="@incident.Severity.ToBadgeClass()">@incident.Severity.ToLabel()</span></td>
+                        <td><span class="@incident.Status.ToBadgeClass()">@incident.Status.ToLabel()</span></td>
+                        <td style="max-width: 320px; white-space: pre-line;">@incident.Description</td>
+                        <td>@occurredDisplay</td>
+                        <td>@estimatedDisplay</td>
+                        <td>
+                            <div class="d-flex gap-2 justify-content-end">
+                                <a asp-page="/Register" asp-route-id="@incident.Id" class="btn btn-sm btn-outline-primary rounded-pill">編集</a>
+                                <form method="post" asp-page-handler="Delete"
+                                      onsubmit="return confirm('「@incident.System!.Name」の障害情報を削除します。よろしいですか？');">
+                                    <input type="hidden" name="id" value="@incident.Id" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill">削除</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+<script>
+    // 対応状況の更新を反映するため、1分ごとに自動リロードする。
+    setTimeout(() => location.reload(), 60000);
+</script>
