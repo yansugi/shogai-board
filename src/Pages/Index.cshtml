@@ -5,13 +5,15 @@
     string[] weekdayLabels = { "日", "月", "火", "水", "木", "金", "土" };
 }
 
-<div class="dashboard-header d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h1 class="h3 mb-1 fw-bold">障害情報ボード</h1>
-        <p class="page-subtitle mb-0 small">現在発生中（未復旧）の障害を一覧表示しています（1分ごとに自動更新）</p>
+@if (Model.OngoingIncidents.Count > 0)
+{
+    <div class="incident-alert-banner mb-4">
+        <span class="incident-alert-icon" aria-hidden="true">⚠</span>
+        <span>
+            現在<strong>@Model.OngoingIncidents.Count</strong>件の障害が発生中です@(Model.CriticalCount > 0 ? $"（うち緊急 {Model.CriticalCount} 件）" : "")。
+        </span>
     </div>
-    <a class="btn btn-primary rounded-pill px-4 shadow-sm" asp-page="/Register">障害を登録する</a>
-</div>
+}
 
 @if (Model.OngoingIncidents.Count == 0)
 {
@@ -26,6 +28,7 @@ else
             <thead>
                 <tr>
                     <th>対象システム</th>
+                    <th>担当課</th>
                     <th>重要度</th>
                     <th>状況</th>
                     <th>障害内容</th>
@@ -43,6 +46,7 @@ else
                         : $"{incident.EstimatedRecoveryAt:MM/dd}({weekdayLabels[(int)incident.EstimatedRecoveryAt.Value.DayOfWeek]}) {incident.EstimatedRecoveryAt:HH:mm}";
                     <tr>
                         <td><span class="dept-name">@incident.System!.Name</span></td>
+                        <td>@(string.IsNullOrWhiteSpace(incident.System!.OwnerSection) ? "-" : incident.System!.OwnerSection)</td>
                         <td><span class="@incident.Severity.ToBadgeClass()">@incident.Severity.ToLabel()</span></td>
                         <td><span class="@incident.Status.ToBadgeClass()">@incident.Status.ToLabel()</span></td>
                         <td style="max-width: 320px; white-space: pre-line;">@incident.Description</td>
@@ -50,7 +54,7 @@ else
                         <td>@estimatedDisplay</td>
                         <td>
                             <div class="d-flex gap-2 justify-content-end">
-                                <a asp-page="/Register" asp-route-id="@incident.Id" class="btn btn-sm btn-outline-primary rounded-pill">編集</a>
+                                <a asp-page="/Register" asp-route-id="@incident.Id" class="btn btn-sm btn-outline-primary rounded-pill edit-incident-link">編集</a>
                                 <form method="post" asp-page-handler="Delete"
                                       onsubmit="return confirm('「@incident.System!.Name」の障害情報を削除します。よろしいですか？');">
                                     <input type="hidden" name="id" value="@incident.Id" />
@@ -62,6 +66,58 @@ else
                 }
             </tbody>
         </table>
+    </div>
+}
+
+@if (Model.RecentlyResolvedIncidents.Count > 0)
+{
+    <div class="mt-4">
+        <h2 class="h6 text-muted mb-2">直近24時間に復旧した障害</h2>
+        <div class="page-card table-card resolved-table">
+            <table class="table modern-table align-middle">
+                <thead>
+                    <tr>
+                        <th>対象システム</th>
+                        <th>担当課</th>
+                        <th>重要度</th>
+                        <th>状況</th>
+                        <th>障害内容</th>
+                        <th>発生日時</th>
+                        <th>復旧日時</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var incident in Model.RecentlyResolvedIncidents)
+                    {
+                        var occurredDisplay = $"{incident.OccurredAt:MM/dd}({weekdayLabels[(int)incident.OccurredAt.DayOfWeek]}) {incident.OccurredAt:HH:mm}";
+                        var resolvedDisplay = incident.ResolvedAt is null
+                            ? "-"
+                            : $"{incident.ResolvedAt:MM/dd}({weekdayLabels[(int)incident.ResolvedAt.Value.DayOfWeek]}) {incident.ResolvedAt:HH:mm}";
+                        <tr>
+                            <td><span class="dept-name">@incident.System!.Name</span></td>
+                            <td>@(string.IsNullOrWhiteSpace(incident.System!.OwnerSection) ? "-" : incident.System!.OwnerSection)</td>
+                            <td><span class="@incident.Severity.ToBadgeClass()">@incident.Severity.ToLabel()</span></td>
+                            <td><span class="@incident.Status.ToBadgeClass()">@incident.Status.ToLabel()</span></td>
+                            <td style="max-width: 320px; white-space: pre-line;">@incident.Description</td>
+                            <td>@occurredDisplay</td>
+                            <td>@resolvedDisplay</td>
+                            <td>
+                                <div class="d-flex gap-2 justify-content-end">
+                                    <a asp-page="/Register" asp-route-id="@incident.Id" class="btn btn-sm btn-outline-primary rounded-pill edit-incident-link">編集</a>
+                                    <form method="post" asp-page-handler="Delete"
+                                          onsubmit="return confirm('「@incident.System!.Name」の障害情報を削除します。よろしいですか？');">
+                                        <input type="hidden" name="id" value="@incident.Id" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill">削除</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <p class="form-text mt-2">復旧から24時間が経過すると、このダッシュボードからは自動的に表示されなくなります（削除はされず、履歴として残ります）。</p>
     </div>
 }
 

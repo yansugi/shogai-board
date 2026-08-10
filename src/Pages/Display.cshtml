@@ -1,0 +1,122 @@
+@page
+@model DisplayModel
+@{
+    Layout = null;
+    string[] weekdayLabels = { "日", "月", "火", "水", "木", "金", "土" };
+}
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>障害情報ボード（閲覧専用）</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <div class="container py-4">
+        <div class="d-flex justify-content-between align-items-baseline mb-3">
+            <h1 class="h4 fw-bold mb-0">障害情報ボード</h1>
+            <p class="page-subtitle mb-0 small">最終更新 @DateTime.Now.ToString("MM/dd(") @weekdayLabels[(int)DateTime.Now.DayOfWeek])@DateTime.Now.ToString(" HH:mm")</p>
+        </div>
+
+        @if (Model.OngoingIncidents.Count > 0)
+        {
+            <div class="incident-alert-banner mb-4">
+                <span class="incident-alert-icon" aria-hidden="true">⚠</span>
+                <span>
+                    現在<strong>@Model.OngoingIncidents.Count</strong>件の障害が発生中です@(Model.CriticalCount > 0 ? $"（うち緊急 {Model.CriticalCount} 件）" : "")。
+                </span>
+            </div>
+        }
+
+        @if (Model.OngoingIncidents.Count == 0)
+        {
+            <div class="page-card empty-state">
+                <p class="mb-0 fs-5 fw-semibold text-success">現在発生中の障害はありません。</p>
+            </div>
+        }
+        else
+        {
+            <div class="page-card table-card">
+                <table class="table modern-table align-middle">
+                    <thead>
+                        <tr>
+                            <th>対象システム</th>
+                            <th>担当課</th>
+                            <th>重要度</th>
+                            <th>状況</th>
+                            <th>障害内容</th>
+                            <th>発生日時</th>
+                            <th>復旧予定</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var incident in Model.OngoingIncidents)
+                        {
+                            var occurredDisplay = $"{incident.OccurredAt:MM/dd}({weekdayLabels[(int)incident.OccurredAt.DayOfWeek]}) {incident.OccurredAt:HH:mm}";
+                            var estimatedDisplay = incident.EstimatedRecoveryAt is null
+                                ? "未定"
+                                : $"{incident.EstimatedRecoveryAt:MM/dd}({weekdayLabels[(int)incident.EstimatedRecoveryAt.Value.DayOfWeek]}) {incident.EstimatedRecoveryAt:HH:mm}";
+                            <tr>
+                                <td><span class="dept-name">@incident.System!.Name</span></td>
+                                <td>@(string.IsNullOrWhiteSpace(incident.System!.OwnerSection) ? "-" : incident.System!.OwnerSection)</td>
+                                <td><span class="@incident.Severity.ToBadgeClass()">@incident.Severity.ToLabel()</span></td>
+                                <td><span class="@incident.Status.ToBadgeClass()">@incident.Status.ToLabel()</span></td>
+                                <td style="max-width: 320px; white-space: pre-line;">@incident.Description</td>
+                                <td>@occurredDisplay</td>
+                                <td>@estimatedDisplay</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        @if (Model.RecentlyResolvedIncidents.Count > 0)
+        {
+            <div class="mt-4">
+                <h2 class="h6 text-muted mb-2">直近24時間に復旧した障害</h2>
+                <div class="page-card table-card resolved-table">
+                    <table class="table modern-table align-middle">
+                        <thead>
+                            <tr>
+                                <th>対象システム</th>
+                                <th>担当課</th>
+                                <th>重要度</th>
+                                <th>状況</th>
+                                <th>障害内容</th>
+                                <th>発生日時</th>
+                                <th>復旧日時</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var incident in Model.RecentlyResolvedIncidents)
+                            {
+                                var occurredDisplay = $"{incident.OccurredAt:MM/dd}({weekdayLabels[(int)incident.OccurredAt.DayOfWeek]}) {incident.OccurredAt:HH:mm}";
+                                var resolvedDisplay = incident.ResolvedAt is null
+                                    ? "-"
+                                    : $"{incident.ResolvedAt:MM/dd}({weekdayLabels[(int)incident.ResolvedAt.Value.DayOfWeek]}) {incident.ResolvedAt:HH:mm}";
+                                <tr>
+                                    <td><span class="dept-name">@incident.System!.Name</span></td>
+                                    <td>@(string.IsNullOrWhiteSpace(incident.System!.OwnerSection) ? "-" : incident.System!.OwnerSection)</td>
+                                    <td><span class="@incident.Severity.ToBadgeClass()">@incident.Severity.ToLabel()</span></td>
+                                    <td><span class="@incident.Status.ToBadgeClass()">@incident.Status.ToLabel()</span></td>
+                                    <td style="max-width: 320px; white-space: pre-line;">@incident.Description</td>
+                                    <td>@occurredDisplay</td>
+                                    <td>@resolvedDisplay</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+    </div>
+
+    <script>
+        // 閲覧専用画面：操作を一切受け付けないため、単純に1分ごとに再読み込みするだけでよい。
+        setTimeout(() => location.reload(), 60000);
+    </script>
+</body>
+</html>
