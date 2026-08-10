@@ -217,7 +217,7 @@
         // 発生日時・復旧予定時刻・復旧日時は、いずれも日付＋時刻を1つの欄で入力できるようにする。
         function setupDateTimePicker(id) {
             const el = document.getElementById(id);
-            flatpickr(el, {
+            return flatpickr(el, {
                 enableTime: true,
                 time_24hr: true,
                 dateFormat: "Y-m-d H:i",
@@ -226,15 +226,22 @@
         }
         setupDateTimePicker("occurredAt");
         setupDateTimePicker("estimatedRecoveryAt");
-        setupDateTimePicker("resolvedAt");
+        const resolvedAtPicker = setupDateTimePicker("resolvedAt");
 
         // 対応状況が「復旧済み」以外の間は、復旧日時（実績）の入力欄を表示しない（未復旧のため）。
+        // 「復旧済み」に切り替えた瞬間、復旧日時が未入力なら現在時刻を自動入力する
+        // （保存時に未入力なら現在時刻が設定されるのはサーバー側でも行っているが、画面上でも分かるようにする）。
+        // 既に値が入っている場合（編集時など）は上書きしない。
         const statusSelect = document.getElementById("statusSelect");
         const resolvedAtGroup = document.getElementById("resolvedAtGroup");
-        function syncResolvedAtVisibility() {
-            resolvedAtGroup.classList.toggle("d-none", statusSelect.value !== "@IncidentStatus.Resolved");
+        function syncResolvedAtField() {
+            const isResolved = statusSelect.value === "@IncidentStatus.Resolved";
+            resolvedAtGroup.classList.toggle("d-none", !isResolved);
+            if (isResolved && !resolvedAtPicker.input.value) {
+                resolvedAtPicker.setDate(new Date(), true);
+            }
         }
-        statusSelect.addEventListener("change", syncResolvedAtVisibility);
-        syncResolvedAtVisibility();
+        statusSelect.addEventListener("change", syncResolvedAtField);
+        syncResolvedAtField();
     </script>
 }
