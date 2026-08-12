@@ -159,6 +159,8 @@ dotnet publish -c Release -r linux-x64 --self-contained false -o ../publish
 - **自己完結型デプロイ**を使い、.NET Runtimeをアプリに同梱する（サーバー側でのRuntimeインストールが不要になる）。
 - **Nginxを使わず、Kestrelが直接80番ポートで待ち受ける**（TLSを使わないイントラ限定公開のため、リバースプロキシは必須ではない。オフライン転送するパッケージも1つ減らせる）。
 
+> ⚠️ **同一サーバーに他アプリ（姉妹アプリの[部署不在ボード（Inainja）](../inainja)含む）を同居させる場合は要注意。** このオフライン手順はNginxを挟まずKestrelが直接80番ポートを占有するため、他のアプリも同じ方式で80番を使っていると起動時に`Address already in use`で衝突し、`systemctl status`上はクラッシュ・自動再起動を繰り返す（`code=killed, status=6/ABRT`）だけで一見原因が分かりにくい。事前に`sudo ss -ltnp | grep ':80 '`で80番の使用状況を確認し、既に使われていれば[deploy/shogai-board-offline.service](deploy/shogai-board-offline.service)の`ASPNETCORE_URLS`を非特権ポート（例：`http://0.0.0.0:5243`。通常デプロイと同じ番号）に変更する。非特権ポートに変更した場合、80番専有のための`setcap`（後述）は不要になる。
+
 ### 1. インターネットに接続できる開発機で自己完結型ビルドを作成する
 ```
 cd src
