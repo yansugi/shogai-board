@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using ShogaiBoard.Data;
 using ShogaiBoard.Models;
+using ShogaiBoard.Services;
 
 // 対象システムマスターCSVインポートでShift_JIS（Excel由来のCSVで多い）を扱えるようにする。
 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
@@ -70,6 +71,25 @@ app.MapGet("/api/incidents", async (AppDbContext db) =>
         .ToListAsync();
 
     return Results.Ok(incidents);
+});
+
+// まだ終了していないメンテナンス予定（実施中・これから予定されているもの）一覧を返すAPI。Slack/Teams等の社内ツール連携用。
+app.MapGet("/api/maintenances", async (AppDbContext db) =>
+{
+    var now = DateTime.Now;
+    var maintenances = await MaintenanceQueries.GetUpcomingMaintenancesAsync(db);
+
+    var result = maintenances.Select(m => new
+    {
+        system = m.System!.Name,
+        description = m.Description,
+        status = m.IsInProgress(now) ? "InProgress" : "Scheduled",
+        affectedScope = m.AffectedScope,
+        scheduledStartAt = m.ScheduledStartAt,
+        scheduledEndAt = m.ScheduledEndAt
+    });
+
+    return Results.Ok(result);
 });
 
 app.Run();

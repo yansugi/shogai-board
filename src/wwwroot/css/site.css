@@ -336,6 +336,23 @@ body {
   color: #15803d;
 }
 
+/* メンテナンス予定の状況バッジ（予定・実施中・終了）。障害の警告色（赤・橙）とははっきり区別しつつ、
+   計画的な作業であることが伝わる、優しいブルー系のトーンにする。 */
+.status-badge.status-maintenance-scheduled {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.status-badge.status-maintenance-inprogress {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.status-badge.status-maintenance-ended {
+  background: #f0fdf4;
+  color: #15803d;
+}
+
 /* 障害情報がない場合の空状態表示 */
 .empty-state {
   padding: 3rem 1.5rem;
@@ -353,4 +370,33 @@ body {
 
 .resolved-table .modern-table thead th {
   color: var(--color-text-muted);
+}
+
+/* メンテナンス予定の一覧：障害（警告色）とは違う、落ち着いた優しいブルー系のトーンにする */
+.maintenance-table .modern-table thead {
+  background: linear-gradient(135deg, #eff6ff, #dbeafe);
+}
+
+.maintenance-table .modern-table thead th {
+  color: #1d4ed8;
+}
+
+/* 直近24時間に終了したメンテナンスの一覧：発生中の予定と区別できるよう、控えめなトーンにする */
+.ended-maintenance-table {
+  opacity: 0.85;
+}
+
+.ended-maintenance-table .modern-table thead {
+  background: #f1f5f9;
+}
+
+.ended-maintenance-table .modern-table thead th {
+  color: var(--color-text-muted);
+}
+
+/* 障害セクションとメンテナンスセクションの区切り線：性質の異なる情報であることが一目で分かるようにする */
+.section-divider {
+  border: none;
+  border-top: 2px dashed var(--color-border);
+  margin: 2.5rem 0 1.5rem;
 }

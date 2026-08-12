@@ -1,9 +1,9 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.EntityFrameworkCore;
 using ShogaiBoard.Data;
 using ShogaiBoard.Models;
+using ShogaiBoard.Services;
 
 namespace ShogaiBoard.Pages;
 
@@ -172,21 +172,9 @@ public class RegisterModel : PageModel
         return RedirectToPage("/Index");
     }
 
-    /// <summary>対象システムマスターから選択肢一覧を読み込む。管轄部署がある場合はシステム名に併記する。</summary>
+    /// <summary>対象システムマスターから選択肢一覧を読み込む。</summary>
     private async Task LoadSystemOptionsAsync()
     {
-        var systems = await _db.Systems
-            .OrderBy(s => s.SortOrder)
-            .ToListAsync();
-
-        var options = systems
-            .Select(s => new
-            {
-                id = s.Id,
-                text = string.IsNullOrWhiteSpace(s.OwnerSection) ? s.Name : $"{s.Name}（{s.OwnerSection}）"
-            })
-            .ToList();
-
-        SystemOptionsJson = System.Text.Json.JsonSerializer.Serialize(options);
+        SystemOptionsJson = await SystemOptionsProvider.GetOptionsJsonAsync(_db);
     }
 }

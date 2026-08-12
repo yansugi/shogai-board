@@ -26,6 +26,12 @@ public class DisplayModel : PageModel
     /// <summary>直近24時間以内に復旧済みになった障害（新しく復旧したものから順）。</summary>
     public List<Incident> RecentlyResolvedIncidents { get; set; } = new();
 
+    /// <summary>まだ終了していないメンテナンス予定（実施中・これから予定されているもの。予定開始日時の早い順）。</summary>
+    public List<Maintenance> UpcomingMaintenances { get; set; } = new();
+
+    /// <summary>直近24時間以内に終了したメンテナンス（終了日時の新しいものから順）。</summary>
+    public List<Maintenance> RecentlyEndedMaintenances { get; set; } = new();
+
     /// <summary>発生中の障害のうち「緊急」の件数（警告バナー表示に使用）。復旧済みは含めない。</summary>
     public int CriticalCount => OngoingIncidents.Count(i => i.Severity == IncidentSeverity.Critical);
 
@@ -33,5 +39,7 @@ public class DisplayModel : PageModel
     {
         OngoingIncidents = await IncidentQueries.GetOngoingIncidentsAsync(_db);
         RecentlyResolvedIncidents = await IncidentQueries.GetRecentlyResolvedIncidentsAsync(_db);
+        UpcomingMaintenances = await MaintenanceQueries.GetUpcomingMaintenancesAsync(_db);
+        RecentlyEndedMaintenances = await MaintenanceQueries.GetRecentlyEndedMaintenancesAsync(_db);
     }
 }
