@@ -41,11 +41,14 @@
 </form>
 <a href="/templates/systems-template.csv" class="d-inline-block mb-4" download>テンプレートCSVをダウンロード</a>
 
+<p class="text-muted">「よく使う」にチェックを入れると、障害登録・メンテナンス登録画面でチップボタンとしてワンクリック選択できるようになります（このチェックはこのブラウザだけに保存されます）。</p>
+
 <table class="table table-bordered bg-white" style="max-width: 780px;">
     <thead class="table-dark">
         <tr>
             <th>システム名</th>
             <th>管轄部署（任意）</th>
+            <th style="width: 100px;">よく使う</th>
             <th style="width: 160px;"></th>
         </tr>
     </thead>
@@ -68,6 +71,9 @@
                 </td>
                 <td>
                     <input type="text" name="ownerSection" value="@system.OwnerSection" form="update-form-@system.Id" class="form-control form-control-sm" />
+                </td>
+                <td class="text-center">
+                    <input type="checkbox" class="form-check-input favorite-system-checkbox" data-system-id="@system.Id" />
                 </td>
                 <td class="d-flex gap-2">
                     <button type="submit" form="update-form-@system.Id" class="btn btn-sm btn-outline-primary rounded-pill">保存</button>
@@ -129,6 +135,25 @@
             if (!deleteMasterPasswordGroup.classList.contains("d-none")) {
                 document.getElementById("deleteMasterPassword").focus();
             }
+        });
+
+        // 「よく使う」チェックはサーバーに保存せず、このブラウザのlocalStorageにのみ保存する。
+        const favoriteIds = ShogaiBoardForms.getFavoriteSystemIds();
+        document.querySelectorAll(".favorite-system-checkbox").forEach(function (checkbox) {
+            const id = parseInt(checkbox.dataset.systemId, 10);
+            checkbox.checked = favoriteIds.includes(id);
+
+            checkbox.addEventListener("change", function () {
+                let ids = ShogaiBoardForms.getFavoriteSystemIds();
+                if (checkbox.checked) {
+                    if (!ids.includes(id)) {
+                        ids.push(id);
+                    }
+                } else {
+                    ids = ids.filter(function (x) { return x !== id; });
+                }
+                ShogaiBoardForms.setFavoriteSystemIds(ids);
+            });
         });
     </script>
 }

@@ -31,7 +31,7 @@ else
                     <th>担当課</th>
                     <th>重要度</th>
                     <th>状況</th>
-                    <th>障害内容</th>
+                    <th>障害内容・対応状況</th>
                     <th>発生日時</th>
                     <th>復旧予定</th>
                     <th></th>
@@ -54,8 +54,8 @@ else
                         <td>@estimatedDisplay</td>
                         <td>
                             <div class="d-flex gap-2 justify-content-end">
-                                <a asp-page="/Register" asp-route-id="@incident.Id" class="btn btn-sm btn-outline-primary rounded-pill edit-incident-link">編集</a>
-                                <form method="post" asp-page-handler="Delete"
+                                <a asp-page="/Register" asp-route-id="@incident.Id" class="btn btn-sm btn-outline-primary rounded-pill edit-incident-link" data-system-id="@incident.SystemId">編集</a>
+                                <form method="post" asp-page-handler="Delete" data-system-id="@incident.SystemId"
                                       onsubmit="return confirm('「@incident.System!.Name」の障害情報を削除します。よろしいですか？');">
                                     <input type="hidden" name="id" value="@incident.Id" />
                                     <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill">削除</button>
@@ -81,7 +81,7 @@ else
                         <th>担当課</th>
                         <th>重要度</th>
                         <th>状況</th>
-                        <th>障害内容</th>
+                        <th>障害内容・対応状況</th>
                         <th>発生日時</th>
                         <th>復旧日時</th>
                         <th></th>
@@ -104,8 +104,8 @@ else
                             <td>@resolvedDisplay</td>
                             <td>
                                 <div class="d-flex gap-2 justify-content-end">
-                                    <a asp-page="/Register" asp-route-id="@incident.Id" class="btn btn-sm btn-outline-primary rounded-pill edit-incident-link">編集</a>
-                                    <form method="post" asp-page-handler="Delete"
+                                    <a asp-page="/Register" asp-route-id="@incident.Id" class="btn btn-sm btn-outline-primary rounded-pill edit-incident-link" data-system-id="@incident.SystemId">編集</a>
+                                    <form method="post" asp-page-handler="Delete" data-system-id="@incident.SystemId"
                                           onsubmit="return confirm('「@incident.System!.Name」の障害情報を削除します。よろしいですか？');">
                                         <input type="hidden" name="id" value="@incident.Id" />
                                         <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill">削除</button>
@@ -156,8 +156,8 @@ else
                             <td>@endDisplay</td>
                             <td>
                                 <div class="d-flex gap-2 justify-content-end">
-                                    <a asp-page="/MaintenanceRegister" asp-route-id="@maintenance.Id" class="btn btn-sm btn-outline-primary rounded-pill edit-maintenance-link">編集</a>
-                                    <form method="post" asp-page-handler="DeleteMaintenance"
+                                    <a asp-page="/MaintenanceRegister" asp-route-id="@maintenance.Id" class="btn btn-sm btn-outline-primary rounded-pill edit-maintenance-link" data-system-id="@maintenance.SystemId">編集</a>
+                                    <form method="post" asp-page-handler="DeleteMaintenance" data-system-id="@maintenance.SystemId"
                                           onsubmit="return confirm('「@maintenance.System!.Name」のメンテナンス予定を削除します。よろしいですか？');">
                                         <input type="hidden" name="id" value="@maintenance.Id" />
                                         <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill">削除</button>
@@ -203,8 +203,8 @@ else
                             <td>@endDisplay</td>
                             <td>
                                 <div class="d-flex gap-2 justify-content-end">
-                                    <a asp-page="/MaintenanceRegister" asp-route-id="@maintenance.Id" class="btn btn-sm btn-outline-primary rounded-pill edit-maintenance-link">編集</a>
-                                    <form method="post" asp-page-handler="DeleteMaintenance"
+                                    <a asp-page="/MaintenanceRegister" asp-route-id="@maintenance.Id" class="btn btn-sm btn-outline-primary rounded-pill edit-maintenance-link" data-system-id="@maintenance.SystemId">編集</a>
+                                    <form method="post" asp-page-handler="DeleteMaintenance" data-system-id="@maintenance.SystemId"
                                           onsubmit="return confirm('「@maintenance.System!.Name」のメンテナンス予定を削除します。よろしいですか？');">
                                         <input type="hidden" name="id" value="@maintenance.Id" />
                                         <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill">削除</button>
@@ -220,7 +220,24 @@ else
     </div>
 }
 
-<script>
-    // 対応状況の更新を反映するため、1分ごとに自動リロードする。
-    setTimeout(() => location.reload(), 60000);
-</script>
+@section Scripts {
+    <script>
+        // 対応状況の更新を反映するため、1分ごとに自動リロードする。
+        setTimeout(() => location.reload(), 60000);
+
+        // 対象システム管理画面で「よく使う」にチェックされたシステムの編集・削除ボタンのみ表示する
+        // （チェックが1件もない場合は絞り込まず、どのシステムの編集・削除ボタンも表示したままにする）。
+        (function filterEditAndDeleteButtons() {
+            const favoriteIds = ShogaiBoardForms.getFavoriteSystemIds();
+            if (favoriteIds.length === 0) {
+                return;
+            }
+            document.querySelectorAll(".edit-incident-link, .edit-maintenance-link, form[data-system-id]").forEach(function (el) {
+                const systemId = parseInt(el.dataset.systemId, 10);
+                if (!favoriteIds.includes(systemId)) {
+                    el.remove();
+                }
+            });
+        })();
+    </script>
+}

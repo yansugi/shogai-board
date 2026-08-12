@@ -17,9 +17,9 @@
 })();
 
 // このページがiframeで埋め込まれている（社内ポータル等に組み込まれている）場合のみ、
-// 障害登録画面へ遷移するリンク（ナビゲーションバーの「障害を登録する」ボタン、
+// 登録画面へ遷移するリンク（ナビゲーションバーの「障害を登録する」「メンテナンス登録」ボタン、
 // ダッシュボード各行の「編集」リンク）を新しいタブで開くようにする。
-// 狭いiframe内でそのまま画面遷移すると、iframe内に障害登録画面が窮屈に表示されてしまうため。
+// 狭いiframe内でそのまま画面遷移すると、iframe内に登録画面が窮屈に表示されてしまうため。
 // iframeでない通常表示の場合は、これまで通り同じタブ内で遷移する。
 (function () {
     var isInIframe;
@@ -41,6 +41,11 @@
         registerBtn.target = "_blank";
     }
 
+    var maintenanceRegisterBtn = document.getElementById("navbarMaintenanceRegisterBtn");
+    if (maintenanceRegisterBtn) {
+        maintenanceRegisterBtn.target = "_blank";
+    }
+
     document.querySelectorAll(".edit-incident-link, .edit-maintenance-link").forEach(function (link) {
         link.target = "_blank";
     });
@@ -49,8 +54,27 @@
 // 障害登録・メンテナンス登録の両画面で使う共通のフォーム部品。
 window.ShogaiBoardForms = window.ShogaiBoardForms || {};
 
+// 「よく使う」システムはサーバーに保存せず、このブラウザのlocalStorageにのみ保存する
+// （対象システム管理画面のチェックボックス・障害登録/メンテナンス登録画面のチップボタン・
+//   ダッシュボードの絞り込み表示で共通して使う）。
+window.ShogaiBoardForms.FAVORITE_SYSTEMS_KEY = "favoriteSystemIds";
+
+window.ShogaiBoardForms.getFavoriteSystemIds = function () {
+    try {
+        return JSON.parse(localStorage.getItem(window.ShogaiBoardForms.FAVORITE_SYSTEMS_KEY) || "[]");
+    } catch {
+        return [];
+    }
+};
+
+window.ShogaiBoardForms.setFavoriteSystemIds = function (ids) {
+    localStorage.setItem(window.ShogaiBoardForms.FAVORITE_SYSTEMS_KEY, JSON.stringify(ids));
+};
+
 // 対象システム選択欄：全システムを対象に検索しながら選べるコンボボックスにする。
-window.ShogaiBoardForms.setupSystemCombobox = function (searchInputId, hiddenInputId, listId, systemOptions) {
+// chipsContainerId・chipsSectionIdを指定すると、「よく使う」システムをチップボタンとして
+// その要素内に表示し、クリックでワンクリック選択できるようにする（未指定なら何もしない）。
+window.ShogaiBoardForms.setupSystemCombobox = function (searchInputId, hiddenInputId, listId, systemOptions, chipsContainerId, chipsSectionId) {
     const searchInput = document.getElementById(searchInputId);
     const hiddenInput = document.getElementById(hiddenInputId);
     const optionsList = document.getElementById(listId);
@@ -165,6 +189,31 @@ window.ShogaiBoardForms.setupSystemCombobox = function (searchInputId, hiddenInp
         const initialOption = systemOptions.find(function (opt) { return opt.id === initialId; });
         if (initialOption) {
             searchInput.value = initialOption.text;
+        }
+    }
+
+    // 「よく使う」にチェックしたシステムをチップボタンとして表示する。
+    if (chipsContainerId && chipsSectionId) {
+        const chipsContainer = document.getElementById(chipsContainerId);
+        const favoriteIds = window.ShogaiBoardForms.getFavoriteSystemIds();
+        favoriteIds.forEach(function (id) {
+            const opt = systemOptions.find(function (o) { return o.id === id; });
+            if (!opt) {
+                return;
+            }
+            const chip = document.createElement("button");
+            chip.type = "button";
+            chip.className = "favorite-system-chip";
+            chip.textContent = opt.text;
+            chip.addEventListener("click", function () {
+                selectSystem(opt);
+            });
+            chipsContainer.appendChild(chip);
+        });
+
+        // チップが1件もない場合は「よく使う」の見出しごと非表示にする。
+        if (chipsContainer.children.length > 0) {
+            document.getElementById(chipsSectionId).style.display = "block";
         }
     }
 };
