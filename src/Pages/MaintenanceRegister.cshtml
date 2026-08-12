@@ -12,7 +12,7 @@
     <p class="page-subtitle mb-0">対象システム・メンテナンス内容・予定日時等を選択して@(isEdit ? "内容を更新してください。" : "登録してください。")</p>
 </div>
 
-<div class="card page-card" style="max-width: 680px;">
+<div class="card page-card maintenance-form" style="max-width: 680px;">
     <div class="card-body">
         <form method="post">
             <div asp-validation-summary="All" class="text-danger mb-3"></div>
@@ -24,6 +24,10 @@
                     <input type="text" id="systemSearchInput" class="form-control form-control-lg" placeholder="システム名で検索..." autocomplete="off" />
                     <input type="hidden" asp-for="SystemId" />
                     <div id="systemOptionsList" class="system-options-list"></div>
+                </div>
+                <div id="favoriteSystemSection" class="mt-2" style="display: none;">
+                    <span class="favorite-system-label">よく使う</span>
+                    <div id="favoriteSystemChips" class="d-flex flex-wrap gap-2 mt-1"></div>
                 </div>
             </div>
 
@@ -68,7 +72,7 @@
         } catch {
             systemOptions = [];
         }
-        ShogaiBoardForms.setupSystemCombobox("systemSearchInput", "SystemId", "systemOptionsList", systemOptions);
+        ShogaiBoardForms.setupSystemCombobox("systemSearchInput", "SystemId", "systemOptionsList", systemOptions, "favoriteSystemChips", "favoriteSystemSection");
 
         // 予定開始日時・予定終了日時は、いずれも日付＋時刻を1つの欄で入力できるようにする。
         ShogaiBoardForms.setupDateTimePicker("scheduledStartAt");

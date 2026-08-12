@@ -25,10 +25,14 @@
                     <input type="hidden" asp-for="SystemId" />
                     <div id="systemOptionsList" class="system-options-list"></div>
                 </div>
+                <div id="favoriteSystemSection" class="mt-2" style="display: none;">
+                    <span class="favorite-system-label">よく使う</span>
+                    <div id="favoriteSystemChips" class="d-flex flex-wrap gap-2 mt-1"></div>
+                </div>
             </div>
 
             <div class="mb-3">
-                <label class="form-label">障害内容</label>
+                <label class="form-label">障害内容・対応状況</label>
                 <textarea asp-for="Description" class="form-control form-control-lg" rows="3" placeholder="例：住民票のオンライン交付が利用できない状態です。"></textarea>
             </div>
 
@@ -93,7 +97,7 @@
         } catch {
             systemOptions = [];
         }
-        ShogaiBoardForms.setupSystemCombobox("systemSearchInput", "SystemId", "systemOptionsList", systemOptions);
+        ShogaiBoardForms.setupSystemCombobox("systemSearchInput", "SystemId", "systemOptionsList", systemOptions, "favoriteSystemChips", "favoriteSystemSection");
 
         // 発生日時・復旧予定時刻・復旧日時は、いずれも日付＋時刻を1つの欄で入力できるようにする。
         ShogaiBoardForms.setupDateTimePicker("occurredAt");
