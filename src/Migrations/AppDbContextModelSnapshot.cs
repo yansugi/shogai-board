@@ -57,6 +57,35 @@ namespace ShogaiBoard.Migrations
                     b.ToTable("Incidents");
                 });
 
+            modelBuilder.Entity("ShogaiBoard.Models.Maintenance", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("AffectedScope")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("ScheduledEndAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("ScheduledStartAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("SystemId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SystemId");
+
+                    b.ToTable("Maintenances");
+                });
+
             modelBuilder.Entity("ShogaiBoard.Models.TargetSystem", b =>
                 {
                     b.Property<int>("Id")
@@ -82,6 +111,17 @@ namespace ShogaiBoard.Migrations
                 });
 
             modelBuilder.Entity("ShogaiBoard.Models.Incident", b =>
+                {
+                    b.HasOne("ShogaiBoard.Models.TargetSystem", "System")
+                        .WithMany()
+                        .HasForeignKey("SystemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("System");
+                });
+
+            modelBuilder.Entity("ShogaiBoard.Models.Maintenance", b =>
                 {
                     b.HasOne("ShogaiBoard.Models.TargetSystem", "System")
                         .WithMany()

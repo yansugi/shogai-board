@@ -121,6 +121,105 @@ else
     </div>
 }
 
+@{
+    var maintenanceNow = DateTime.Now;
+}
+@if (Model.UpcomingMaintenances.Count > 0)
+{
+    <hr class="section-divider" />
+    <div>
+        <h2 class="h6 text-muted mb-2">予定されているメンテナンス</h2>
+        <div class="page-card table-card maintenance-table">
+            <table class="table modern-table align-middle">
+                <thead>
+                    <tr>
+                        <th>対象システム</th>
+                        <th>担当課</th>
+                        <th>状況</th>
+                        <th>メンテナンス内容</th>
+                        <th>予定開始</th>
+                        <th>予定終了</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var maintenance in Model.UpcomingMaintenances)
+                    {
+                        var startDisplay = $"{maintenance.ScheduledStartAt:MM/dd}({weekdayLabels[(int)maintenance.ScheduledStartAt.DayOfWeek]}) {maintenance.ScheduledStartAt:HH:mm}";
+                        var endDisplay = $"{maintenance.ScheduledEndAt:MM/dd}({weekdayLabels[(int)maintenance.ScheduledEndAt.DayOfWeek]}) {maintenance.ScheduledEndAt:HH:mm}";
+                        <tr>
+                            <td><span class="dept-name">@maintenance.System!.Name</span></td>
+                            <td>@(string.IsNullOrWhiteSpace(maintenance.System!.OwnerSection) ? "-" : maintenance.System!.OwnerSection)</td>
+                            <td><span class="@maintenance.ToStatusBadgeClass(maintenanceNow)">@maintenance.ToStatusLabel(maintenanceNow)</span></td>
+                            <td style="max-width: 320px; white-space: pre-line;">@maintenance.Description</td>
+                            <td>@startDisplay</td>
+                            <td>@endDisplay</td>
+                            <td>
+                                <div class="d-flex gap-2 justify-content-end">
+                                    <a asp-page="/MaintenanceRegister" asp-route-id="@maintenance.Id" class="btn btn-sm btn-outline-primary rounded-pill edit-maintenance-link">編集</a>
+                                    <form method="post" asp-page-handler="DeleteMaintenance"
+                                          onsubmit="return confirm('「@maintenance.System!.Name」のメンテナンス予定を削除します。よろしいですか？');">
+                                        <input type="hidden" name="id" value="@maintenance.Id" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill">削除</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@if (Model.RecentlyEndedMaintenances.Count > 0)
+{
+    <div class="mt-4">
+        <h2 class="h6 text-muted mb-2">直近24時間に終了したメンテナンス</h2>
+        <div class="page-card table-card maintenance-table ended-maintenance-table">
+            <table class="table modern-table align-middle">
+                <thead>
+                    <tr>
+                        <th>対象システム</th>
+                        <th>担当課</th>
+                        <th>状況</th>
+                        <th>メンテナンス内容</th>
+                        <th>予定開始</th>
+                        <th>予定終了</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var maintenance in Model.RecentlyEndedMaintenances)
+                    {
+                        var startDisplay = $"{maintenance.ScheduledStartAt:MM/dd}({weekdayLabels[(int)maintenance.ScheduledStartAt.DayOfWeek]}) {maintenance.ScheduledStartAt:HH:mm}";
+                        var endDisplay = $"{maintenance.ScheduledEndAt:MM/dd}({weekdayLabels[(int)maintenance.ScheduledEndAt.DayOfWeek]}) {maintenance.ScheduledEndAt:HH:mm}";
+                        <tr>
+                            <td><span class="dept-name">@maintenance.System!.Name</span></td>
+                            <td>@(string.IsNullOrWhiteSpace(maintenance.System!.OwnerSection) ? "-" : maintenance.System!.OwnerSection)</td>
+                            <td><span class="@maintenance.ToStatusBadgeClass(maintenanceNow)">@maintenance.ToStatusLabel(maintenanceNow)</span></td>
+                            <td style="max-width: 320px; white-space: pre-line;">@maintenance.Description</td>
+                            <td>@startDisplay</td>
+                            <td>@endDisplay</td>
+                            <td>
+                                <div class="d-flex gap-2 justify-content-end">
+                                    <a asp-page="/MaintenanceRegister" asp-route-id="@maintenance.Id" class="btn btn-sm btn-outline-primary rounded-pill edit-maintenance-link">編集</a>
+                                    <form method="post" asp-page-handler="DeleteMaintenance"
+                                          onsubmit="return confirm('「@maintenance.System!.Name」のメンテナンス予定を削除します。よろしいですか？');">
+                                        <input type="hidden" name="id" value="@maintenance.Id" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill">削除</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <p class="form-text mt-2">終了から24時間が経過すると、このダッシュボードからは自動的に表示されなくなります（削除はされず、履歴として残ります）。</p>
+    </div>
+}
+
 <script>
     // 対応状況の更新を反映するため、1分ごとに自動リロードする。
     setTimeout(() => location.reload(), 60000);

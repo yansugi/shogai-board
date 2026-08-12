@@ -1,0 +1,77 @@
+@page "{id:int?}"
+@model MaintenanceRegisterModel
+@{
+    var isEdit = Model.Id.HasValue;
+    ViewData["Title"] = isEdit ? "メンテナンス編集" : "メンテナンス登録";
+}
+
+<link rel="stylesheet" href="~/lib/flatpickr/flatpickr.min.css" />
+
+<div class="mb-4">
+    <h1 class="h3 mb-1 fw-bold">@(isEdit ? "メンテナンス編集" : "メンテナンス登録")</h1>
+    <p class="page-subtitle mb-0">対象システム・メンテナンス内容・予定日時等を選択して@(isEdit ? "内容を更新してください。" : "登録してください。")</p>
+</div>
+
+<div class="card page-card" style="max-width: 680px;">
+    <div class="card-body">
+        <form method="post">
+            <div asp-validation-summary="All" class="text-danger mb-3"></div>
+            <input type="hidden" asp-for="Id" />
+
+            <div class="mb-3">
+                <label class="form-label">対象システム</label>
+                <div class="system-combobox">
+                    <input type="text" id="systemSearchInput" class="form-control form-control-lg" placeholder="システム名で検索..." autocomplete="off" />
+                    <input type="hidden" asp-for="SystemId" />
+                    <div id="systemOptionsList" class="system-options-list"></div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">メンテナンス内容</label>
+                <textarea asp-for="Description" class="form-control form-control-lg" rows="3" placeholder="例：サーバー機器の定期点検のため、一時的にサービスを停止します。"></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">影響範囲・対象業務（任意）</label>
+                <input asp-for="AffectedScope" class="form-control form-control-lg" placeholder="例：住民票のコンビニ交付のみ、庁内全体 等" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">予定開始日時</label>
+                <input asp-for="ScheduledStartAt" type="text" id="scheduledStartAt" class="form-control form-control-lg datetime-input" autocomplete="off" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">予定終了日時</label>
+                <input asp-for="ScheduledEndAt" type="text" id="scheduledEndAt" class="form-control form-control-lg datetime-input" autocomplete="off" />
+            </div>
+
+            <button type="submit" class="btn btn-primary rounded-pill px-4 shadow-sm">@(isEdit ? "更新する" : "登録する")</button>
+            <a asp-page="/Index" class="btn btn-outline-secondary rounded-pill px-4">戻る</a>
+        </form>
+    </div>
+</div>
+
+<script id="systemOptionsData" type="application/json">@Html.Raw(Model.SystemOptionsJson)</script>
+
+@section Scripts {
+    <script src="~/lib/flatpickr/flatpickr.min.js"></script>
+    <script src="~/lib/flatpickr/l10n/ja.js"></script>
+    <script>
+        flatpickr.localize(flatpickr.l10ns.ja);
+
+        // 対象システム選択欄：全システムを対象に検索しながら選べるコンボボックスにする。
+        let systemOptions = [];
+        try {
+            systemOptions = JSON.parse(document.getElementById("systemOptionsData").textContent || "[]");
+        } catch {
+            systemOptions = [];
+        }
+        ShogaiBoardForms.setupSystemCombobox("systemSearchInput", "SystemId", "systemOptionsList", systemOptions);
+
+        // 予定開始日時・予定終了日時は、いずれも日付＋時刻を1つの欄で入力できるようにする。
+        ShogaiBoardForms.setupDateTimePicker("scheduledStartAt");
+        ShogaiBoardForms.setupDateTimePicker("scheduledEndAt");
+    </script>
+}
