@@ -73,6 +73,26 @@ app.MapGet("/api/incidents", async (AppDbContext db) =>
     return Results.Ok(incidents);
 });
 
+// 直近24時間以内に復旧した障害一覧を返すAPI。Slack/Teams等の社内ツール連携用。
+// ダッシュボードの「直近24時間に復旧した障害」と同じデータ・同じ保持期間。
+app.MapGet("/api/incidents/resolved", async (AppDbContext db) =>
+{
+    var incidents = await IncidentQueries.GetRecentlyResolvedIncidentsAsync(db);
+
+    var result = incidents.Select(i => new
+    {
+        system = i.System!.Name,
+        description = i.Description,
+        severity = i.Severity.ToString(),
+        status = i.Status.ToString(),
+        affectedScope = i.AffectedScope,
+        occurredAt = i.OccurredAt,
+        resolvedAt = i.ResolvedAt
+    });
+
+    return Results.Ok(result);
+});
+
 // まだ終了していないメンテナンス予定（実施中・これから予定されているもの）一覧を返すAPI。Slack/Teams等の社内ツール連携用。
 app.MapGet("/api/maintenances", async (AppDbContext db) =>
 {
