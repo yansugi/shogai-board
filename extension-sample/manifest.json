@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "ShogaiBoard 障害・メンテナンス情報バナー（サンプル）",
+  "version": "1.0",
+  "description": "ShogaiBoardのAPIを参照し、発生中の障害・直近の復旧・予定メンテナンスを社内ポータル画面に表示するサンプル拡張機能",
+  "background": {
+    "service_worker": "shogai-board-widget.js"
+  },
+  "host_permissions": [
+    "https://your-shogai-board-server.example/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://your-portal.example/*"],
+      "js": ["shogai-board-widget.js"]
+    }
+  ]
+}
