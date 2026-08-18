@@ -58,6 +58,46 @@
 
 **実装箇所**: [Program.cs](src/Program.cs)（Razor Pagesの画面とは別に、Minimal APIとして直接定義）。
 
+### `GET /api/incidents/resolved`
+直近24時間以内に復旧した障害情報一覧を返す。ダッシュボードの「直近24時間に復旧した障害」欄と同じデータ・同じ保持期間（[IncidentQueries.cs](src/Services/IncidentQueries.cs)の`ResolvedRetention`）を使う。
+
+| 項目 | 内容 |
+|---|---|
+| 認証 | なし（画面と同様、イントラ限定のため） |
+| クエリパラメーター | なし |
+| 対象データ | 対応状況（`status`）が「復旧済み」かつ、復旧日時（`resolvedAt`）が現在時刻から24時間以内の障害情報 |
+| ソート順 | 復旧日時（`resolvedAt`）降順（新しい順） |
+| レスポンス | `200 OK`、`Content-Type: application/json`。該当がなければ空配列`[]` |
+
+**レスポンスの各要素**
+
+| フィールド | 型 | 説明 |
+|---|---|---|
+| `system` | string | 対象システム名 |
+| `description` | string | 障害内容 |
+| `severity` | string | 重要度（`Critical`＝緊急、`Major`＝重要、`Minor`＝軽微） |
+| `status` | string | 対応状況（常に`Resolved`） |
+| `affectedScope` | string \| null | 影響範囲・対象業務（未入力の場合は`null`） |
+| `occurredAt` | string（ISO 8601日時） | 発生日時 |
+| `resolvedAt` | string（ISO 8601日時） | 復旧日時 |
+
+**レスポンス例**
+```json
+[
+  {
+    "system": "住民票交付システム",
+    "description": "オンライン交付が利用できない状態です。",
+    "severity": "Critical",
+    "status": "Resolved",
+    "affectedScope": "住民票のコンビニ交付のみ",
+    "occurredAt": "2026-08-10T09:00:00",
+    "resolvedAt": "2026-08-10T11:30:00"
+  }
+]
+```
+
+**実装箇所**: [Program.cs](src/Program.cs)。
+
 ### `GET /api/maintenances`
 まだ終了していない（実施中・これから予定されている）メンテナンス予定一覧を返す。用途は`/api/incidents`と同様。
 
