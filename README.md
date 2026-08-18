@@ -11,8 +11,9 @@
 - **フレームワーク**: ASP.NET Core 8.0（Razor Pages）
 - **DB**: SQLite（`shogai-board.db`、アプリ実行フォルダー直下に自動生成）
 - **ソースコード**: [src/](src/)
-- **API**: `GET /api/incidents`・`GET /api/maintenances`（現在発生中の障害・まだ終了していないメンテナンス予定の一覧をJSONで返す。Slack/Teams等の連携用。詳細は[API仕様](#api仕様)を参照）
+- **API**: `GET /api/incidents`・`GET /api/incidents/resolved`・`GET /api/maintenances`（現在発生中の障害・直近24時間に復旧した障害・まだ終了していないメンテナンス予定の一覧をJSONで返す。Slack/Teams等の連携用。詳細は[API仕様](#api仕様)を参照）
 - **閲覧専用ダッシュボード**: `/Display`（編集・削除ボタンやナビゲーションを持たない、表示専用の画面。庁内モニターへの常時投影やiframe埋め込み用途）
+- **社内ポータル連携サンプル**: [extension-sample/](extension-sample/)（上記APIを参照し、社内ポータル等の別ページに障害・メンテナンス情報をバナー表示するChrome拡張機能のサンプル）
 
 姉妹アプリの[部署不在ボード（Inainja）](../inainja)と同じ技術構成・配置方針を踏襲している。
 
