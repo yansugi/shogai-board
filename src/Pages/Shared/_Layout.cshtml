@@ -1,3 +1,7 @@
+@{
+    // 現在のページ（ナビゲーションの強調表示に使用）
+    var currentPage = ViewContext.RouteData.Values["page"] as string ?? "";
+}
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -22,10 +26,13 @@
                             <a class="nav-link text-dark" asp-area="" asp-page="/Index">ダッシュボード</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Register">障害登録</a>
+                            <a class="nav-link text-dark @(currentPage is "/Register" or "/EquipmentRegister" ? "nav-active nav-active-incident" : "")" asp-area="" asp-page="/Register">障害・不具合登録</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/MaintenanceRegister">メンテナンス登録</a>
+                            <a class="nav-link text-dark @(currentPage is "/MaintenanceRegister" or "/EquipmentMaintenanceRegister" ? "nav-active nav-active-maintenance" : "")" asp-area="" asp-page="/MaintenanceRegister">メンテナンス登録</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-page="/Equipments">対象計器管理</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-page="/Systems">対象システム管理</a>
@@ -39,7 +46,7 @@
                             </svg>
                         </button>
                         <a id="navbarMaintenanceRegisterBtn" class="btn rounded-pill px-3 navbar-maintenance-btn" asp-page="/MaintenanceRegister">メンテナンス登録</a>
-                        <a id="navbarRegisterBtn" class="btn btn-primary rounded-pill px-3 navbar-register-btn" asp-page="/Register">障害を登録する</a>
+                        <a id="navbarRegisterBtn" class="btn btn-primary rounded-pill px-3 navbar-register-btn" asp-page="/Register">障害・不具合を登録する</a>
                     </div>
                 </div>
             </div>

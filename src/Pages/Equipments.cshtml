@@ -1,0 +1,87 @@
+@page
+@model EquipmentsModel
+@{
+    ViewData["Title"] = "対象計器管理";
+}
+
+<h1 class="h3 mb-3">対象計器管理</h1>
+
+<div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+<h2 class="h5 mb-2">対象計器・什器等を追加</h2>
+<form method="post" asp-page-handler="Add" class="d-flex gap-2 mb-4" style="max-width: 640px;">
+    <input asp-for="NewName" class="form-control" maxlength="100" placeholder="計器・什器等の名称" />
+    <input asp-for="NewLocation" class="form-control" maxlength="100" placeholder="設置場所（任意）" />
+    <button type="submit" class="btn btn-primary text-nowrap">追加する</button>
+</form>
+
+<p class="text-muted">「よく使う」にチェックを入れると、設備不具合登録画面でチップボタンとしてワンクリック選択できるようになります。また、ダッシュボードでは「よく使う」以外の計器の編集・削除ボタンが非表示になります（このチェックはこのブラウザだけに保存されます）。</p>
+
+<table class="table table-bordered bg-white" style="max-width: 780px;">
+    <thead class="table-dark">
+        <tr>
+            <th>計器・什器等の名称</th>
+            <th>設置場所（任意）</th>
+            <th style="width: 100px;">よく使う</th>
+            <th style="width: 160px;"></th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model.Equipments.Count == 0)
+        {
+            <tr>
+                <td colspan="4" class="text-muted text-center">対象計器がまだ登録されていません。上のフォームから追加してください。</td>
+            </tr>
+        }
+        @foreach (var equipment in Model.Equipments)
+        {
+            <tr>
+                <td>
+                    <form method="post" asp-page-handler="Update" id="update-form-@equipment.Id">
+                        <input type="hidden" name="id" value="@equipment.Id" />
+                        <input type="text" name="name" value="@equipment.Name" maxlength="100" class="form-control form-control-sm" />
+                    </form>
+                </td>
+                <td>
+                    <input type="text" name="location" value="@equipment.Location" maxlength="100" form="update-form-@equipment.Id" class="form-control form-control-sm" />
+                </td>
+                <td class="text-center">
+                    <input type="checkbox" class="form-check-input favorite-equipment-checkbox" data-equipment-id="@equipment.Id" />
+                </td>
+                <td class="d-flex gap-2">
+                    <button type="submit" form="update-form-@equipment.Id" class="btn btn-sm btn-outline-primary rounded-pill">保存</button>
+                    <form method="post" asp-page-handler="Delete"
+                          onsubmit="return confirm('「@equipment.Name」を削除します。紐づく不具合情報・メンテナンス予定（履歴含む）も併せて削除され、取り消せません。よろしいですか？');">
+                        <input type="hidden" name="id" value="@equipment.Id" />
+                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill">削除</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<a asp-page="/Index" class="btn btn-secondary mt-4">ダッシュボードへ戻る</a>
+
+@section Scripts {
+    <script>
+        // 「よく使う」チェックはサーバーに保存せず、このブラウザのlocalStorageにのみ保存する。
+        const favoriteIds = ShogaiBoardForms.getFavoriteEquipmentIds();
+        document.querySelectorAll(".favorite-equipment-checkbox").forEach(function (checkbox) {
+            const id = parseInt(checkbox.dataset.equipmentId, 10);
+            checkbox.checked = favoriteIds.includes(id);
+
+            checkbox.addEventListener("change", function () {
+                let ids = ShogaiBoardForms.getFavoriteEquipmentIds();
+                if (checkbox.checked) {
+                    if (!ids.includes(id)) {
+                        ids.push(id);
+                    }
+                } else {
+                    ids = ids.filter(function (x) { return x !== id; });
+                }
+                ShogaiBoardForms.setFavoriteEquipmentIds(ids);
+            });
+        });
+    </script>
+}

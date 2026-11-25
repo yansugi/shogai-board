@@ -32,6 +32,18 @@ public class DisplayModel : PageModel
     /// <summary>直近24時間以内に終了したメンテナンス（終了日時の新しいものから順）。</summary>
     public List<Maintenance> RecentlyEndedMaintenances { get; set; } = new();
 
+    /// <summary>未解消（発生中）の設備不具合（計器・什器等）。</summary>
+    public List<EquipmentIssue> OngoingEquipmentIssues { get; set; } = new();
+
+    /// <summary>直近24時間以内に解消した設備不具合（解消日時の新しいものから順）。</summary>
+    public List<EquipmentIssue> RecentlyResolvedEquipmentIssues { get; set; } = new();
+
+    /// <summary>まだ終了していない計器メンテナンス予定（実施中・予定。予定開始日時の早い順）。</summary>
+    public List<EquipmentMaintenance> UpcomingEquipmentMaintenances { get; set; } = new();
+
+    /// <summary>直近24時間以内に終了した計器メンテナンス（終了日時の新しいものから順）。</summary>
+    public List<EquipmentMaintenance> RecentlyEndedEquipmentMaintenances { get; set; } = new();
+
     /// <summary>発生中の障害のうち「緊急」の件数（警告バナー表示に使用）。復旧済みは含めない。</summary>
     public int CriticalCount => OngoingIncidents.Count(i => i.Severity == IncidentSeverity.Critical);
 
@@ -41,5 +53,9 @@ public class DisplayModel : PageModel
         RecentlyResolvedIncidents = await IncidentQueries.GetRecentlyResolvedIncidentsAsync(_db);
         UpcomingMaintenances = await MaintenanceQueries.GetUpcomingMaintenancesAsync(_db);
         RecentlyEndedMaintenances = await MaintenanceQueries.GetRecentlyEndedMaintenancesAsync(_db);
+        OngoingEquipmentIssues = await EquipmentIssueQueries.GetOngoingAsync(_db);
+        RecentlyResolvedEquipmentIssues = await EquipmentIssueQueries.GetRecentlyResolvedAsync(_db);
+        UpcomingEquipmentMaintenances = await EquipmentMaintenanceQueries.GetUpcomingAsync(_db);
+        RecentlyEndedEquipmentMaintenances = await EquipmentMaintenanceQueries.GetRecentlyEndedAsync(_db);
     }
 }

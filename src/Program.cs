@@ -112,4 +112,39 @@ app.MapGet("/api/maintenances", async (AppDbContext db) =>
     return Results.Ok(result);
 });
 
+// 未解消（発生中）の設備不具合（計器・什器等）一覧を返すAPI。Slack/Teams等の社内ツール連携用。
+app.MapGet("/api/equipment-issues", async (AppDbContext db) =>
+{
+    var issues = await EquipmentIssueQueries.GetOngoingAsync(db);
+
+    var result = issues.Select(e => new
+    {
+        equipmentName = e.Equipment!.Name,
+        location = e.Equipment!.Location,
+        description = e.Description,
+        occurredAt = e.OccurredAt
+    });
+
+    return Results.Ok(result);
+});
+
+// まだ終了していない計器メンテナンス予定（実施中・予定）一覧を返すAPI。Slack/Teams等の社内ツール連携用。
+app.MapGet("/api/equipment-maintenances", async (AppDbContext db) =>
+{
+    var now = DateTime.Now;
+    var maintenances = await EquipmentMaintenanceQueries.GetUpcomingAsync(db);
+
+    var result = maintenances.Select(m => new
+    {
+        equipmentName = m.Equipment!.Name,
+        location = m.Equipment!.Location,
+        description = m.Description,
+        status = m.IsInProgress(now) ? "InProgress" : "Scheduled",
+        scheduledStartAt = m.ScheduledStartAt,
+        scheduledEndAt = m.ScheduledEndAt
+    });
+
+    return Results.Ok(result);
+});
+
 app.Run();

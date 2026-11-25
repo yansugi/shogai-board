@@ -7,10 +7,7 @@
 
 <link rel="stylesheet" href="~/lib/flatpickr/flatpickr.min.css" />
 
-<div class="mb-4">
-    <h1 class="h3 mb-1 fw-bold">@(isEdit ? "メンテナンス編集" : "メンテナンス登録")</h1>
-    <p class="page-subtitle mb-0">対象システム・メンテナンス内容・予定日時等を選択して@(isEdit ? "内容を更新してください。" : "登録してください。")</p>
-</div>
+<partial name="_RegisterHeader" model='new RegisterHeaderViewModel("maintenance", "system", isEdit ? "メンテナンス編集" : "メンテナンス登録", isEdit ? "対象システム・メンテナンス内容・予定日時等を選択して内容を更新してください。" : "対象システム・メンテナンス内容・予定日時等を選択して登録してください。", isEdit)' />
 
 <div class="card page-card maintenance-form" style="max-width: 680px;">
     <div class="card-body">

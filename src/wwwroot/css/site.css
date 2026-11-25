@@ -482,3 +482,185 @@ body {
   border-top: 2px dashed var(--color-border);
   margin: 2.5rem 0 1.5rem;
 }
+
+/* 計器・什器等の不具合：黄色で表示し、障害（赤・橙）やメンテナンス（青）と区別できるようにする */
+.status-badge.status-equipment-ongoing {
+  background: #fef08a;
+  color: #854d0e;
+}
+
+.equipment-table .modern-table thead {
+  background: linear-gradient(135deg, #fefce8, #fef08a);
+}
+
+.equipment-table .modern-table thead th {
+  color: #854d0e;
+}
+
+.equipment-table .modern-table tbody tr {
+  background: #fffef5;
+}
+
+/* 解消済みの不具合：発生中と区別できるよう控えめなトーンにする */
+.equipment-resolved-table {
+  opacity: 0.85;
+}
+
+.equipment-resolved-table .modern-table thead {
+  background: #f1f5f9;
+}
+
+.equipment-resolved-table .modern-table thead th {
+  color: var(--color-text-muted);
+}
+
+/* ===== 登録画面の共通ヘッダー・タブ =====
+   「障害・不具合登録」は赤系、「メンテナンス登録」は青系にして、どちらの画面を開いているかが
+   ひと目で分かるようにする（ヘッダー帯・タブ・カード上縁・ボタン・フォーカス色を揃える）。 */
+.register-header {
+  border-radius: 14px;
+  padding: 1.1rem 1.4rem 0.9rem;
+  max-width: 680px;
+  border-left: 8px solid var(--group-color);
+  background: var(--group-bg);
+}
+
+.register-header-incident {
+  --group-color: #dc2626;
+  --group-dark: #991b1b;
+  --group-bg: linear-gradient(135deg, #fef2f2, #fee2e2);
+}
+
+.register-header-maintenance {
+  --group-color: #1d4ed8;
+  --group-dark: #1e3a8a;
+  --group-bg: linear-gradient(135deg, #eff6ff, #dbeafe);
+}
+
+.register-header h1 {
+  color: var(--group-dark);
+}
+
+.register-header-subtitle {
+  color: var(--color-text-muted);
+}
+
+.register-group-badge {
+  display: inline-block;
+  padding: 0.15rem 0.8rem;
+  margin-bottom: 0.4rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #fff;
+  background: var(--group-color);
+}
+
+.register-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.register-tab {
+  display: inline-block;
+  padding: 0.4rem 1.1rem;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--group-dark);
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--group-color);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+a.register-tab:hover {
+  background: #fff;
+  color: var(--group-color);
+}
+
+.register-tab.active {
+  color: #fff;
+  background: var(--group-color);
+  cursor: default;
+}
+
+.register-tab-note {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+/* ナビゲーションの現在地表示（障害・不具合＝赤、メンテナンス＝青） */
+.navbar .nav-link.nav-active {
+  font-weight: 700;
+}
+
+.navbar .nav-link.nav-active-incident {
+  color: #b91c1c !important;
+  background-color: #fee2e2;
+}
+
+.navbar .nav-link.nav-active-maintenance {
+  color: #1d4ed8 !important;
+  background-color: #dbeafe;
+}
+
+/* 障害・不具合の登録フォーム（赤系）：カード上縁・ボタン・フォーカス色・チップ・選択肢を赤で揃える */
+.incident-form {
+  border-top: 5px solid #dc2626;
+}
+
+.maintenance-form {
+  border-top: 5px solid #1d4ed8;
+}
+
+.incident-form .btn-primary {
+  background-color: #dc2626;
+  border-color: #dc2626;
+}
+
+.incident-form .btn-primary:hover,
+.incident-form .btn-primary:focus,
+.incident-form .btn-primary:active,
+.incident-form .btn-primary:not(:disabled):not(.disabled):active {
+  background-color: #991b1b !important;
+  border-color: #991b1b !important;
+}
+
+.incident-form .btn:focus,
+.incident-form .btn:active:focus,
+.incident-form .datetime-input:focus,
+.incident-form .form-control:focus,
+.incident-form .form-select:focus,
+.incident-form .form-check-input:focus {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #dc2626;
+}
+
+.incident-form .form-check-input:checked {
+  background-color: #dc2626;
+  border-color: #dc2626;
+}
+
+.incident-form .favorite-system-chip {
+  background: #dc2626;
+}
+
+.incident-form .favorite-system-chip:hover {
+  background: #991b1b;
+}
+
+.incident-form .system-option-item:hover,
+.incident-form .system-option-item.active {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* ダッシュボード最下部「直近24時間の履歴」グループの見出し：現在の状況（上段）より控えめなトーンにする */
+.history-heading {
+  color: var(--color-text-muted);
+}

@@ -34,6 +34,18 @@ public class IndexModel : PageModel
     /// <summary>直近24時間以内に終了したメンテナンス（終了日時の新しいものから順）。</summary>
     public List<Maintenance> RecentlyEndedMaintenances { get; set; } = new();
 
+    /// <summary>未解消（発生中）の設備不具合（計器・什器等）。</summary>
+    public List<EquipmentIssue> OngoingEquipmentIssues { get; set; } = new();
+
+    /// <summary>直近24時間以内に解消した設備不具合（解消日時の新しいものから順）。</summary>
+    public List<EquipmentIssue> RecentlyResolvedEquipmentIssues { get; set; } = new();
+
+    /// <summary>まだ終了していない計器メンテナンス予定（実施中・予定。予定開始日時の早い順）。</summary>
+    public List<EquipmentMaintenance> UpcomingEquipmentMaintenances { get; set; } = new();
+
+    /// <summary>直近24時間以内に終了した計器メンテナンス（終了日時の新しいものから順）。</summary>
+    public List<EquipmentMaintenance> RecentlyEndedEquipmentMaintenances { get; set; } = new();
+
     /// <summary>発生中の障害のうち「緊急」の件数（ダッシュボード上部の警告バナー表示に使用）。復旧済みは含めない。</summary>
     public int CriticalCount => OngoingIncidents.Count(i => i.Severity == IncidentSeverity.Critical);
 
@@ -49,6 +61,40 @@ public class IndexModel : PageModel
         RecentlyResolvedIncidents = await IncidentQueries.GetRecentlyResolvedIncidentsAsync(_db);
         UpcomingMaintenances = await MaintenanceQueries.GetUpcomingMaintenancesAsync(_db);
         RecentlyEndedMaintenances = await MaintenanceQueries.GetRecentlyEndedMaintenancesAsync(_db);
+        OngoingEquipmentIssues = await EquipmentIssueQueries.GetOngoingAsync(_db);
+        RecentlyResolvedEquipmentIssues = await EquipmentIssueQueries.GetRecentlyResolvedAsync(_db);
+        UpcomingEquipmentMaintenances = await EquipmentMaintenanceQueries.GetUpcomingAsync(_db);
+        RecentlyEndedEquipmentMaintenances = await EquipmentMaintenanceQueries.GetRecentlyEndedAsync(_db);
+    }
+
+    /// <summary>不要になった計器メンテナンス予定を手動で削除する（予定の取り消し等）。</summary>
+    public async Task<IActionResult> OnPostDeleteEquipmentMaintenanceAsync(int id)
+    {
+        var maintenance = await _db.EquipmentMaintenances.FindAsync(id);
+        if (maintenance is null)
+        {
+            return NotFound();
+        }
+
+        _db.EquipmentMaintenances.Remove(maintenance);
+        await _db.SaveChangesAsync();
+
+        return RedirectToPage();
+    }
+
+    /// <summary>誤登録などで不要になった設備不具合を手動で削除する。</summary>
+    public async Task<IActionResult> OnPostDeleteEquipmentAsync(int id)
+    {
+        var issue = await _db.EquipmentIssues.FindAsync(id);
+        if (issue is null)
+        {
+            return NotFound();
+        }
+
+        _db.EquipmentIssues.Remove(issue);
+        await _db.SaveChangesAsync();
+
+        return RedirectToPage();
     }
 
     /// <summary>誤登録などで掲示が不要になった障害情報を手動で削除する。</summary>

@@ -7,12 +7,9 @@
 
 <link rel="stylesheet" href="~/lib/flatpickr/flatpickr.min.css" />
 
-<div class="mb-4">
-    <h1 class="h3 mb-1 fw-bold">@(isEdit ? "障害編集" : "障害登録")</h1>
-    <p class="page-subtitle mb-0">対象システム・障害内容・発生日時等を選択して@(isEdit ? "内容を更新してください。" : "登録してください。")</p>
-</div>
+<partial name="_RegisterHeader" model='new RegisterHeaderViewModel("incident", "system", isEdit ? "障害編集" : "障害登録", isEdit ? "対象システム・障害内容・発生日時等を選択して内容を更新してください。" : "対象システム・障害内容・発生日時等を選択して登録してください。", isEdit)' />
 
-<div class="card page-card" style="max-width: 680px;">
+<div class="card page-card incident-form" style="max-width: 680px;">
     <div class="card-body">
         <form method="post">
             <div asp-validation-summary="All" class="text-danger mb-3"></div>

@@ -1,0 +1,36 @@
+@model ShogaiBoard.Models.RegisterHeaderViewModel
+@{
+    var isIncident = Model.Group == "incident";
+    var groupLabel = isIncident ? "⚠ 障害・不具合" : "🛠 メンテナンス";
+    var groupClass = isIncident ? "register-header-incident" : "register-header-maintenance";
+
+    // タブ定義：(キー, ラベル, 遷移先ページ)
+    var tabs = isIncident
+        ? new[] { ("system", "システム障害", "/Register"), ("equipment", "計器・什器等の不具合", "/EquipmentRegister") }
+        : new[] { ("system", "システムのメンテナンス", "/MaintenanceRegister"), ("equipment", "計器・什器等のメンテナンス", "/EquipmentMaintenanceRegister") };
+}
+
+<div class="register-header @groupClass mb-4">
+    <span class="register-group-badge">@groupLabel</span>
+    <h1 class="h3 mb-1 fw-bold">@Model.Title</h1>
+    <p class="register-header-subtitle mb-3">@Model.Subtitle</p>
+
+    <ul class="register-tabs" role="tablist">
+        @foreach (var (key, label, target) in tabs)
+        {
+            var isActive = key == Model.ActiveTab;
+            if (isActive)
+            {
+                <li role="presentation"><span class="register-tab active" role="tab" aria-selected="true">@label</span></li>
+            }
+            else if (!Model.IsEdit)
+            {
+                <li role="presentation"><a class="register-tab" role="tab" aria-selected="false" asp-page="@target">@label</a></li>
+            }
+        }
+    </ul>
+    @if (Model.IsEdit)
+    {
+        <p class="register-tab-note mb-0">編集中は種別を切り替えられません。</p>
+    }
+</div>

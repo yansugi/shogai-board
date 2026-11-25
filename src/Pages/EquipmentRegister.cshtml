@@ -1,0 +1,92 @@
+@page "{id:int?}"
+@model EquipmentRegisterModel
+@{
+    var isEdit = Model.Id.HasValue;
+    ViewData["Title"] = isEdit ? "設備不具合編集" : "設備不具合登録";
+}
+
+<link rel="stylesheet" href="~/lib/flatpickr/flatpickr.min.css" />
+
+<partial name="_RegisterHeader" model='new RegisterHeaderViewModel("incident", "equipment", isEdit ? "設備不具合編集" : "設備不具合登録", isEdit ? "対象計器・不具合内容・発生日時を入力して内容を更新してください。" : "対象計器・不具合内容・発生日時を入力して登録してください。", isEdit)' />
+
+<div class="card page-card incident-form" style="max-width: 680px;">
+    <div class="card-body">
+        <form method="post">
+            <div asp-validation-summary="All" class="text-danger mb-3"></div>
+            <input type="hidden" asp-for="Id" />
+
+            <div class="mb-3">
+                <label class="form-label">対象計器・什器等</label>
+                <div class="system-combobox">
+                    <input type="text" id="equipmentSearchInput" class="form-control form-control-lg" placeholder="計器・什器等の名称で検索..." autocomplete="off" />
+                    <input type="hidden" asp-for="EquipmentId" />
+                    <div id="equipmentOptionsList" class="system-options-list"></div>
+                </div>
+                <div id="favoriteEquipmentSection" class="mt-2" style="display: none;">
+                    <span class="favorite-system-label">よく使う</span>
+                    <div id="favoriteEquipmentChips" class="d-flex flex-wrap gap-2 mt-1"></div>
+                </div>
+                <p class="form-text mb-0">一覧にない場合は<a asp-page="/Equipments">対象計器管理</a>で追加してください。</p>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">不具合内容</label>
+                <textarea asp-for="Description" class="form-control form-control-lg" rows="3" placeholder="例：紙詰まりで番号札が出ません。修理業者に連絡済みです。"></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">発生日時</label>
+                <input asp-for="OccurredAt" type="text" id="occurredAt" class="form-control form-control-lg datetime-input" autocomplete="off" />
+            </div>
+
+            <div class="form-check mb-3">
+                <input asp-for="IsResolved" id="isResolved" class="form-check-input" />
+                <label class="form-check-label" for="isResolved">解消済みにする</label>
+            </div>
+
+            <div class="mb-3" id="resolvedAtGroup">
+                <label class="form-label">解消日時（実績）</label>
+                <input asp-for="ResolvedAt" type="text" id="resolvedAt" class="form-control form-control-lg datetime-input" autocomplete="off" />
+                <p class="form-text mb-0">未入力のまま保存すると、自動的に現在時刻が設定されます。</p>
+            </div>
+
+            <button type="submit" class="btn btn-primary rounded-pill px-4 shadow-sm">@(isEdit ? "更新する" : "登録する")</button>
+            <a asp-page="/Index" class="btn btn-outline-secondary rounded-pill px-4">戻る</a>
+        </form>
+    </div>
+</div>
+
+<script id="equipmentOptionsData" type="application/json">@Html.Raw(Model.EquipmentOptionsJson)</script>
+
+@section Scripts {
+    <script src="~/lib/flatpickr/flatpickr.min.js"></script>
+    <script src="~/lib/flatpickr/l10n/ja.js"></script>
+    <script>
+        flatpickr.localize(flatpickr.l10ns.ja);
+
+        // 対象計器選択欄：検索しながら選べるコンボボックス。「よく使う」計器はチップボタンで表示する。
+        let equipmentOptions = [];
+        try {
+            equipmentOptions = JSON.parse(document.getElementById("equipmentOptionsData").textContent || "[]");
+        } catch {
+            equipmentOptions = [];
+        }
+        ShogaiBoardForms.setupSystemCombobox("equipmentSearchInput", "EquipmentId", "equipmentOptionsList", equipmentOptions,
+            "favoriteEquipmentChips", "favoriteEquipmentSection", ShogaiBoardForms.getFavoriteEquipmentIds());
+
+        ShogaiBoardForms.setupDateTimePicker("occurredAt");
+        const resolvedAtPicker = ShogaiBoardForms.setupDateTimePicker("resolvedAt");
+
+        // 「解消済みにする」がオンの間だけ解消日時の欄を表示し、オンにした瞬間に未入力なら現在時刻を自動入力する。
+        const isResolvedCheck = document.getElementById("isResolved");
+        const resolvedAtGroup = document.getElementById("resolvedAtGroup");
+        function syncResolvedAtField() {
+            resolvedAtGroup.classList.toggle("d-none", !isResolvedCheck.checked);
+            if (isResolvedCheck.checked && !resolvedAtPicker.input.value) {
+                resolvedAtPicker.setDate(new Date(), true);
+            }
+        }
+        isResolvedCheck.addEventListener("change", syncResolvedAtField);
+        syncResolvedAtField();
+    </script>
+}

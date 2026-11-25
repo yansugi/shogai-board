@@ -46,7 +46,7 @@
         maintenanceRegisterBtn.target = "_blank";
     }
 
-    document.querySelectorAll(".edit-incident-link, .edit-maintenance-link").forEach(function (link) {
+    document.querySelectorAll(".edit-incident-link, .edit-maintenance-link, .edit-equipment-link").forEach(function (link) {
         link.target = "_blank";
     });
 })();
@@ -71,10 +71,27 @@ window.ShogaiBoardForms.setFavoriteSystemIds = function (ids) {
     localStorage.setItem(window.ShogaiBoardForms.FAVORITE_SYSTEMS_KEY, JSON.stringify(ids));
 };
 
+// 「よく使う」対象計器も同様にlocalStorageにのみ保存する（対象システムの「よく使う」とは別キーで管理する）。
+window.ShogaiBoardForms.FAVORITE_EQUIPMENTS_KEY = "favoriteEquipmentIds";
+
+window.ShogaiBoardForms.getFavoriteEquipmentIds = function () {
+    try {
+        return JSON.parse(localStorage.getItem(window.ShogaiBoardForms.FAVORITE_EQUIPMENTS_KEY) || "[]");
+    } catch {
+        return [];
+    }
+};
+
+window.ShogaiBoardForms.setFavoriteEquipmentIds = function (ids) {
+    localStorage.setItem(window.ShogaiBoardForms.FAVORITE_EQUIPMENTS_KEY, JSON.stringify(ids));
+};
+
 // 対象システム選択欄：全システムを対象に検索しながら選べるコンボボックスにする。
+// 対象計器の選択欄にも流用でき、その場合は最後の引数favoriteIdsに「よく使う」計器のID配列を渡す
+// （省略時は対象システムの「よく使う」を使う）。
 // chipsContainerId・chipsSectionIdを指定すると、「よく使う」システムをチップボタンとして
 // その要素内に表示し、クリックでワンクリック選択できるようにする（未指定なら何もしない）。
-window.ShogaiBoardForms.setupSystemCombobox = function (searchInputId, hiddenInputId, listId, systemOptions, chipsContainerId, chipsSectionId) {
+window.ShogaiBoardForms.setupSystemCombobox = function (searchInputId, hiddenInputId, listId, systemOptions, chipsContainerId, chipsSectionId, favoriteIds) {
     const searchInput = document.getElementById(searchInputId);
     const hiddenInput = document.getElementById(hiddenInputId);
     const optionsList = document.getElementById(listId);
@@ -117,7 +134,7 @@ window.ShogaiBoardForms.setupSystemCombobox = function (searchInputId, hiddenInp
         if (filtered.length === 0) {
             const empty = document.createElement("div");
             empty.className = "system-option-empty";
-            empty.textContent = "該当するシステムがありません";
+            empty.textContent = "該当するものがありません";
             optionsList.appendChild(empty);
         } else {
             filtered.forEach(function (opt, idx) {
@@ -195,8 +212,8 @@ window.ShogaiBoardForms.setupSystemCombobox = function (searchInputId, hiddenInp
     // 「よく使う」にチェックしたシステムをチップボタンとして表示する。
     if (chipsContainerId && chipsSectionId) {
         const chipsContainer = document.getElementById(chipsContainerId);
-        const favoriteIds = window.ShogaiBoardForms.getFavoriteSystemIds();
-        favoriteIds.forEach(function (id) {
+        const chipIds = favoriteIds || window.ShogaiBoardForms.getFavoriteSystemIds();
+        chipIds.forEach(function (id) {
             const opt = systemOptions.find(function (o) { return o.id === id; });
             if (!opt) {
                 return;

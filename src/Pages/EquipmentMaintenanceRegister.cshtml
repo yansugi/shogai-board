@@ -1,0 +1,74 @@
+@page "{id:int?}"
+@model EquipmentMaintenanceRegisterModel
+@{
+    var isEdit = Model.Id.HasValue;
+    ViewData["Title"] = isEdit ? "計器メンテナンス編集" : "計器メンテナンス登録";
+}
+
+<link rel="stylesheet" href="~/lib/flatpickr/flatpickr.min.css" />
+
+<partial name="_RegisterHeader" model='new RegisterHeaderViewModel("maintenance", "equipment", isEdit ? "計器メンテナンス編集" : "計器メンテナンス登録", isEdit ? "対象計器・メンテナンス内容・予定日時を入力して内容を更新してください。" : "対象計器・メンテナンス内容・予定日時を入力して登録してください。", isEdit)' />
+
+<div class="card page-card maintenance-form" style="max-width: 680px;">
+    <div class="card-body">
+        <form method="post">
+            <div asp-validation-summary="All" class="text-danger mb-3"></div>
+            <input type="hidden" asp-for="Id" />
+
+            <div class="mb-3">
+                <label class="form-label">対象計器・什器等</label>
+                <div class="system-combobox">
+                    <input type="text" id="equipmentSearchInput" class="form-control form-control-lg" placeholder="計器・什器等の名称で検索..." autocomplete="off" />
+                    <input type="hidden" asp-for="EquipmentId" />
+                    <div id="equipmentOptionsList" class="system-options-list"></div>
+                </div>
+                <div id="favoriteEquipmentSection" class="mt-2" style="display: none;">
+                    <span class="favorite-system-label">よく使う</span>
+                    <div id="favoriteEquipmentChips" class="d-flex flex-wrap gap-2 mt-1"></div>
+                </div>
+                <p class="form-text mb-0">一覧にない場合は<a asp-page="/Equipments">対象計器管理</a>で追加してください。</p>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">メンテナンス内容</label>
+                <textarea asp-for="Description" class="form-control form-control-lg" rows="3" placeholder="例：年次点検のため、終日ご利用いただけません。"></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">予定開始日時</label>
+                <input asp-for="ScheduledStartAt" type="text" id="scheduledStartAt" class="form-control form-control-lg datetime-input" autocomplete="off" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">予定終了日時</label>
+                <input asp-for="ScheduledEndAt" type="text" id="scheduledEndAt" class="form-control form-control-lg datetime-input" autocomplete="off" />
+            </div>
+
+            <button type="submit" class="btn btn-primary rounded-pill px-4 shadow-sm">@(isEdit ? "更新する" : "登録する")</button>
+            <a asp-page="/Index" class="btn btn-outline-secondary rounded-pill px-4">戻る</a>
+        </form>
+    </div>
+</div>
+
+<script id="equipmentOptionsData" type="application/json">@Html.Raw(Model.EquipmentOptionsJson)</script>
+
+@section Scripts {
+    <script src="~/lib/flatpickr/flatpickr.min.js"></script>
+    <script src="~/lib/flatpickr/l10n/ja.js"></script>
+    <script>
+        flatpickr.localize(flatpickr.l10ns.ja);
+
+        // 対象計器選択欄：検索しながら選べるコンボボックス。「よく使う」計器はチップボタンで表示する。
+        let equipmentOptions = [];
+        try {
+            equipmentOptions = JSON.parse(document.getElementById("equipmentOptionsData").textContent || "[]");
+        } catch {
+            equipmentOptions = [];
+        }
+        ShogaiBoardForms.setupSystemCombobox("equipmentSearchInput", "EquipmentId", "equipmentOptionsList", equipmentOptions,
+            "favoriteEquipmentChips", "favoriteEquipmentSection", ShogaiBoardForms.getFavoriteEquipmentIds());
+
+        ShogaiBoardForms.setupDateTimePicker("scheduledStartAt");
+        ShogaiBoardForms.setupDateTimePicker("scheduledEndAt");
+    </script>
+}

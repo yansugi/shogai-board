@@ -17,6 +17,58 @@ namespace ShogaiBoard.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.10");
 
+            modelBuilder.Entity("ShogaiBoard.Models.EquipmentIssue", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("EquipmentId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("OccurredAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("ResolvedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EquipmentId");
+
+                    b.ToTable("EquipmentIssues");
+                });
+
+            modelBuilder.Entity("ShogaiBoard.Models.EquipmentMaintenance", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("EquipmentId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("ScheduledEndAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("ScheduledStartAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EquipmentId");
+
+                    b.ToTable("EquipmentMaintenances");
+                });
+
             modelBuilder.Entity("ShogaiBoard.Models.Incident", b =>
                 {
                     b.Property<int>("Id")
@@ -86,6 +138,27 @@ namespace ShogaiBoard.Migrations
                     b.ToTable("Maintenances");
                 });
 
+            modelBuilder.Entity("ShogaiBoard.Models.TargetEquipment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Location")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Equipments");
+                });
+
             modelBuilder.Entity("ShogaiBoard.Models.TargetSystem", b =>
                 {
                     b.Property<int>("Id")
@@ -108,6 +181,28 @@ namespace ShogaiBoard.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Systems");
+                });
+
+            modelBuilder.Entity("ShogaiBoard.Models.EquipmentIssue", b =>
+                {
+                    b.HasOne("ShogaiBoard.Models.TargetEquipment", "Equipment")
+                        .WithMany()
+                        .HasForeignKey("EquipmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Equipment");
+                });
+
+            modelBuilder.Entity("ShogaiBoard.Models.EquipmentMaintenance", b =>
+                {
+                    b.HasOne("ShogaiBoard.Models.TargetEquipment", "Equipment")
+                        .WithMany()
+                        .HasForeignKey("EquipmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Equipment");
                 });
 
             modelBuilder.Entity("ShogaiBoard.Models.Incident", b =>

@@ -15,6 +15,9 @@ public class AppDbContext : DbContext
     public DbSet<TargetSystem> Systems => Set<TargetSystem>();
     public DbSet<Incident> Incidents => Set<Incident>();
     public DbSet<Maintenance> Maintenances => Set<Maintenance>();
+    public DbSet<TargetEquipment> Equipments => Set<TargetEquipment>();
+    public DbSet<EquipmentMaintenance> EquipmentMaintenances => Set<EquipmentMaintenance>();
+    public DbSet<EquipmentIssue> EquipmentIssues => Set<EquipmentIssue>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
